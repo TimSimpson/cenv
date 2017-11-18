@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 
 import typing as t  # NOQA
@@ -35,6 +36,16 @@ class Manager(object):
         self._view.run_command(' '.join(cmd))
         subprocess.check_call(cmd)
         return Env(name, ct.FilePath(new_env_directory))
+
+    def delete(self, name):
+        # type: (str) -> None
+        env = self.get(name)
+        if env is None:
+            return
+        if not env.directory.startswith(self._dir):
+            # Avoid deleteing an environment we don't seem to own.
+            raise RuntimeError("Environment in wrong place.")
+        shutil.rmtree(env.directory)
 
     def get(self, name):
         # type: (str) -> t.Optional[Env]

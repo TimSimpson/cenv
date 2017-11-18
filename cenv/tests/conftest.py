@@ -52,7 +52,6 @@ def test_directory():
 def random_directory(test_directory):
     # type: (ct.FilePath) -> ct.FilePath
     """Just a temp directory."""
-    random_dir = os.path.join(test_directory,
-                              'install-{}'.format(uuid.uuid4()))
+    random_dir = os.path.join(test_directory, str(uuid.uuid4()))
     os.mkdir(random_dir)
     return ct.FilePath(random_dir)
