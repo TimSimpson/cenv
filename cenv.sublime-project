@@ -1,0 +1,22 @@
+{
+    "folders":
+    [
+        {
+            "path": "./",
+            "folder_exclude_patterns":
+            [
+                ".tox"
+            ]
+        },
+    ],
+    "build_systems":
+    [
+        {
+            "file_regex": "(^.*?\\.py)\\:([0-9]*)",
+            "name": "retox",
+            "shell_cmd": "./retox.sh",
+            "working_dir": "${project_path:${folder}}"
+        }
+    ]
+
+}

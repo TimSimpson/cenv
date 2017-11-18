@@ -3,4 +3,5 @@ cenv.egg-info
 .mypy_cache
 *.pyc
 __pycache__
+*.sublime-workspace
 .tox
