@@ -35,3 +35,9 @@ def test_toolchain_create(resources_directory, random_directory):
     assert got_tc is not None
     assert 'emscripten' == got_tc.name
     assert expected_new_tc_file == got_tc.file_path
+
+    # Remove the toolchain
+    manager.delete('emscripten')
+
+    assert manager.get('emscripten') is None
+    assert [] == manager.list()

@@ -13,14 +13,14 @@ class ToolChain(object):
         self._file_path = file_path
 
     @property
-    def file_path(self):
-        # type: () -> ct.FilePath
-        return self._file_path
-
-    @property
     def name(self):
         # type: () -> str
         return self._name
+
+    @property
+    def file_path(self):
+        # type: () -> ct.FilePath
+        return self._file_path
 
     def __eq__(self, other):
         # type: (object) -> bool
@@ -55,6 +55,17 @@ class Manager(object):
         shutil.copyfile(file_path, new_file)
 
         return ToolChain(name, ct.FilePath(new_file))
+
+    def delete(self, name):
+        # type: (str) -> None
+        """Deletes a toolchain."""
+        tc = self.get(name)
+        if tc is None:
+            return
+        if os.path.exists(tc.file_path):
+            if not tc.file_path.startswith(self._dir):
+                raise RuntimeError('ToolChain exists with bad path.')
+            os.remove(tc.file_path)
 
     def get(self, name):
         # type: (str) -> t.Optional[ToolChain]
