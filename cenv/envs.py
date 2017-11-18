@@ -8,8 +8,37 @@ from . import types as ct  # NOQA
 from . import views
 
 
-Env = ct.Env
-ToolChain = ct.ToolChain
+CGET_PREFIX = os.environ.get('CGET_PREFIX', None)
+
+
+class Env(object):
+
+    def __init__(self, name, directory):
+        # type: (str, ct.FilePath) -> None
+        self._name = name
+        self._directory = directory
+
+    @property
+    def name(self):
+        # type: () -> str
+        return self._name
+
+    @property
+    def directory(self):
+        # type: () -> ct.FilePath
+        return self._directory
+
+    def __eq__(self, other):
+        # type: (object) -> bool
+        if not isinstance(other, Env):
+            return False
+        return all((self._name == other._name,
+                    self._directory == other._directory))
+
+    def __repr__(self):
+        # type: () -> str
+        return "Env(name={}, directory={})".format(
+            self._name, self._directory)
 
 
 class Manager(object):

@@ -3,6 +3,7 @@ import os
 import typing as t  # NOQA
 
 from cenv import envs
+from cenv import toolchains
 from .. import types as ct  # NOQA
 
 
@@ -17,7 +18,7 @@ def test_create_envs(resources_directory, random_directory):
     # type: (ct.FilePath, ct.FilePath) -> None
     toolchain_file = ct.FilePath(
         os.path.join(resources_directory, 'Emscripten.cmake'))
-    toolchain = ct.ToolChain('emscripten', toolchain_file)
+    toolchain = toolchains.ToolChain('emscripten', toolchain_file)
 
     manager = envs.Manager(random_directory)
 
