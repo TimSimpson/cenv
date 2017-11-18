@@ -9,6 +9,7 @@ setuptools.setup(
     license='MIT',
     packages=setuptools.find_packages(exclude=['docs', 'test*']),
     install_requires=[
+        'six',
         'typing>=3.6.2'
     ],
     entry_points={

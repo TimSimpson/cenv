@@ -32,7 +32,7 @@ in Windows:
 
     cenv list
         - shows envs
-    cenv create js --toolchain=emscripten
+    cenv create emscripten js
     cenv activate js
 
     cenv deactivate
