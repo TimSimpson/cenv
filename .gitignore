@@ -1,3 +1,4 @@
+.cache
 cenv.egg-info
 .coverage
 .mypy_cache

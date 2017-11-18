@@ -5,9 +5,9 @@ from . import types as ct  # NOQA
 
 
 class Options(object):
-    def __init__(self):
-        # type: () -> None
-        self._root_directory = None  # type: t.Optional[ct.FilePath]
+    def __init__(self, root_directory):
+        # type: (ct.FilePath) -> None
+        self._root_directory = root_directory  # type: ct.FilePath
 
     def _from_root(self, path):
         # type: (t.Union[str, ct.FilePath]) -> ct.FilePath
