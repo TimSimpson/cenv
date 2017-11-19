@@ -2,48 +2,44 @@
 
 Cget-Env is a tool somewhat similar to PyEnv which lets you manage multiple Cget and CMake environments.
 
-## Installation
-
-Cget-Env works by installing imposter programs which look like CMake or Cget and live at the front of your path. When you call CMake, cenv can optionally pass a toolchain file every time.
-
-To install, clone this repo, run the install script, then add `bin` to your path:
-
-    git clone ${REPO_URL} cenv
-    cd cenv
-
-Then, in Linux:
-
-    ./install-cenv.sh
-    export PATH=$(pwd)/bin:"${PATH}"
-
-in Windows:
-
-    install-cenv
-    set PATH=%CD%/bin;%PATH%
-
-
 ## Usage
 
-    cenv toolchain add emscripten "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
-    cenv toolchain add msvc-14.1 --from-template msvc-14.1
-    cenv toolchain list
+Check this out:
+
+    $ cd some-project
+    $ cenv list
+    No envs found!
+    $ cenv create typical-env
+    Created new Env(name=typical-env, toolchain=None)
+    $ cenv create clang-env --cxx clang++-3.8 --cc clang-3.8
+    Created new Env(name=clang-env, toolchain=None)
+    $ cenv activate clang-env
+    $ mkdir build-clang && cd build-clang
+    $ cmake -H../ -B./  # build using clang
+    $ make install  # install libraries to ~/.cenv/envs/clang-env/lib
+    $ cd ..
+    $ cenv list
+    * clang-env
+      typical-env
+    $ cenv toolchain add emscripten "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
+    $ cenv toolchain list
       emscripten
-    cenv toolchain add msvc-14.1 --from-template msvc-14.1
-    cenv toolchain list
-    cenv list
-        - shows envs
-    cenv create emscripten js
-    cenv activate js
-
-    cenv deactivate
-        - turn off
-
-Cget-Env requires Python 2 or 3.
+    $ cenv create js --toolchain emscripten
+    $ cenv activate js
+    $ cenv list
+      clang-env
+    * js
+      typical-env
+    $ cd ..
+    $ mkdir build-js && cd build-js
+    $ cmake -G Ninja -H../ -B./  $ build using Emscripten
+    $ ninja install  # Installs stuff to ~/.cenv/envs/js/lib
+    $ cenv deactivate
 
 
 ## Installation
 
-cenv can be installed the same as most Python projects.
+`cenv` (this project) can be installed the same as most Python projects.
 
 TODO: Overview of how to do that.
 
@@ -74,4 +70,3 @@ These two functions wrap `cenv` and `cmake` respectively. `cenv` is wrapped to
 allow a semi-portable Python script to set values in your shell, while `cmake`
 is wrapped so always pass in the paths assocated with the currently selected
 environment.
-
