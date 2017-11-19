@@ -17,6 +17,15 @@ tc_registry = frontdoor.CommandRegistry("toolchain")
 tc_cmd = tc_registry.decorate
 
 
+def output(text):
+    # type: (str) -> None
+    """Exactly like print, but easier to monkeypatch.
+
+    I don't like the fixtures that capture stdout.
+    """
+    print(text)
+
+
 def get_options():
     # type: () -> options.Options
     root = os.path.expanduser(os.environ.get('CENV_ROOT', '~/.cenv'))
@@ -39,15 +48,15 @@ def cmd_list(args):
     verbose_mode = '-v' in args or '--verbose' in args
     envs = get_env_manager().list()
     if len(envs) == 0:
-        print("No envs found!")
+        output("No envs found!")
     else:
         for env in envs:
             active = '*' if env.active else ' '
             if verbose_mode:
-                print('{} {}\t{}'.format(
+                output('{} {}\t{}'.format(
                     active, env.name, env.get_creation_info()))
             else:
-                print('{} {}'.format(active, env.name))
+                output('{} {}'.format(active, env.name))
 
     return 0
 
@@ -56,7 +65,7 @@ def cmd_list(args):
 def cmd_create(args):
     # type: (t.List[str]) -> int
     if len(args) < 1:
-        print('Usage: `create <toolchain> <new env name>')
+        output('Usage: `create <toolchain> <new env name>')
         return 1
 
     env_name = args[0]
@@ -64,7 +73,7 @@ def cmd_create(args):
     extra_args = args[1:]
 
     if '--prefix' in extra_args or '-p' in extra_args:
-        print('Invalid value `--prefix`: cenv sets this when calling cget.')
+        output('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
 
     toolchain_arg = None  # type: t.Optional[t.Dict[str, t.Any]]
@@ -76,7 +85,7 @@ def cmd_create(args):
                 }
                 break
             else:
-                print('Expected name after `--toolchain`.')
+                output('Expected name after `--toolchain`.')
                 return 1
         elif arg.startswith("--toolchain="):
             toolchain_arg = {
@@ -88,9 +97,9 @@ def cmd_create(args):
         toolchain = get_toolchain_manager().get(toolchain_arg['name'])
         if toolchain is None:
             if not os.path.exists(toolchain_arg['name']):
-                print('Warning: No such toolchain: {}'.format(
+                output('Warning: No such toolchain: {}'.format(
                     toolchain_arg['name']))
-                print('Env may be inoperable.')
+                output('Env may be inoperable.')
         else:
             # Mutate the arg headed to cget
             if toolchain_arg['embed']:
@@ -101,7 +110,7 @@ def cmd_create(args):
 
     env = get_env_manager().create(env_name, extra_args)
 
-    print('Created new {}'.format(env))
+    output('Created new {}'.format(env))
     return 0
 
 
@@ -109,7 +118,7 @@ def cmd_create(args):
 def cmd_activate(args):
     # type: (t.List[str]) -> int
     if len(args) != 1:
-        print('Usage: `activate <env name>')
+        output('Usage: `activate <env name>')
         return 1
 
     env_name = args[0]
@@ -117,7 +126,7 @@ def cmd_activate(args):
     env = get_env_manager().get(env_name)
 
     if env is None:
-        print("No such environment {}".format(env_name))
+        output("No such environment {}".format(env_name))
         return 1
 
     ops = get_options()
@@ -146,13 +155,13 @@ def cmd_toolchain(args):
 def cmd_tc_add(args):
     # type: (t.List[str]) -> int
     if len(args) != 2:
-        print('Usage: `add <name of toolchain> <path to toolchain cmake file>')
+        output('Usage: `add <name of toolchain> <path to toolchain file>')
         return 1
 
     name = args[0]
     file_path = ct.FilePath(args[1])
     tc = get_toolchain_manager().add_from_file(name, file_path)
-    print("Added new {}".format(tc))
+    output("Added new {}".format(tc))
     return 0
 
 
@@ -161,10 +170,10 @@ def cmd_tc_list(args):
     # type: (t.List[str]) -> int
     tc_list = get_toolchain_manager().list()
     if len(tc_list) == 0:
-        print('No toolchains found!')
+        output('No toolchains found!')
     else:
         for tc in tc_list:
-            print('{} {}'.format(' ', tc.name))
+            output('{} {}'.format(' ', tc.name))
     return 0
 
 

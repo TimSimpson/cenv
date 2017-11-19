@@ -3,7 +3,6 @@ import os
 import typing as t  # NOQA
 
 from cenv import envs
-from cenv import toolchains
 from .. import types as ct  # NOQA
 
 
@@ -16,15 +15,11 @@ def test_envs_are_empty(random_directory):
 
 def test_create_envs(resources_directory, random_directory):
     # type: (ct.FilePath, ct.FilePath) -> None
-    toolchain_file = ct.FilePath(
-        os.path.join(resources_directory, 'Emscripten.cmake'))
-    toolchain = toolchains.ToolChain('emscripten', toolchain_file)
-
     manager = envs.Manager(random_directory)
 
     expected_new_dir = ct.FilePath(os.path.join(random_directory, 'js'))
 
-    new_env = manager.create('js', toolchain)
+    new_env = manager.create('js', [])
     assert 'js' == new_env.name
     assert expected_new_dir == new_env.directory
 
