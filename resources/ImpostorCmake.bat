@@ -1,6 +1,6 @@
 @ECHO OFF
 
-if "%CGET_PREFIX%"=="" GOTO normal ELSE inject
+if "%CGET_PREFIX%"=="" ( GOTO normal ) ELSE ( GOTO inject )
 
 :normal
     echo CGET_PREFIX not set
