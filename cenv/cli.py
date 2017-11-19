@@ -28,8 +28,14 @@ def output(text):
 
 def get_options():
     # type: () -> options.Options
-    root = os.path.expanduser(os.environ.get('CENV_ROOT', '~/.cenv'))
-    return options.Options(ct.FilePath(root))
+    default_root = os.path.join('~', '.cenv')
+    root = os.path.expanduser(os.environ.get('CENV_ROOT', default_root))
+    ops = options.Options(ct.FilePath(root))
+    if not os.path.exists(ops.environments):
+        os.makedirs(ops.environments)
+    if not os.path.exists(ops.toolchains):
+        os.makedirs(ops.toolchains)
+    return ops
 
 
 def get_env_manager():
@@ -132,6 +138,8 @@ def cmd_activate(args):
     ops = get_options()
     with open(ops.rc_file, 'w') as f:
         f.write("export CGET_PREFIX={}".format(env.directory))
+    with open(ops.batch_file, 'w') as f:
+        f.write("set CGET_PREFIX={}".format(env.directory))
 
     return 0
 
@@ -142,6 +150,8 @@ def cmd_deactive(args):
     ops = get_options()
     with open(ops.rc_file, 'w') as f:
         f.write("export CGET_PREFIX=")
+    with open(ops.batch_file, 'w') as f:
+        f.write("set CGET_PREFIX=")
     return 0
 
 

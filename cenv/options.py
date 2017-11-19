@@ -15,6 +15,11 @@ class Options(object):
         return ct.FilePath(os.path.join(self._root_directory, path))
 
     @property
+    def batch_file(self):
+        # type: () -> ct.FilePath
+        return self._from_root("set-vars.bat")
+
+    @property
     def environments(self):
         # type: () -> ct.FilePath
         return self._from_root("envs")
