@@ -17,9 +17,14 @@ class Options(object):
     @property
     def environments(self):
         # type: () -> ct.FilePath
-        return self._from_root('envs')
+        return self._from_root("envs")
+
+    @property
+    def rc_file(self):
+        # type: () -> ct.FilePath
+        return self._from_root("cenv.rc")
 
     @property
     def toolchains(self):
         # type: () -> ct.FilePath
-        return self._from_root('toolchains')
+        return self._from_root("toolchains")

@@ -37,10 +37,12 @@ def get_toolchain_manager():
 def cmd_list(args):
     # type: (t.List[str]) -> int
     envs = get_env_manager().list()
-    for env in envs:
-        print('{} {}'.format('*' if env.active else ' ', env.name))
+    if len(envs) == 0:
+        print("No envs found!")
     else:
-        print('No envs found!')
+        for env in envs:
+            print('{} {}'.format('*' if env.active else ' ', env.name))
+
     return 0
 
 
@@ -63,6 +65,34 @@ def cmd_create(args):
 
     print('Created new {}'.format(env))
     return 0
+
+
+@cmd('activate', desc='Turn on Cget env')
+def cmd_activate(args):
+    # type: (t.List[str]) -> int
+    if len(args) != 1:
+        print('Usage: `activate <env name>')
+        return 1
+
+    env_name = args[0]
+
+    env = get_env_manager().get(env_name)
+
+    if env is None:
+        print("No such environment {}".format(env_name))
+        return 1
+
+    ops = get_options()
+    with open(ops.rc_file, 'w') as f:
+        f.write("export CGET_PREFIX={}".format(env.directory))
+
+
+@cmd('deactivate', desc='Turn off cenvs (cmake and cget behave normally)')
+def cmd_deactive(args):
+    # type: (t.List[str]) -> int
+    ops = get_options()
+    with open(ops.rc_file, 'w') as f:
+        f.write("export CGET_PREFIX=")
 
 
 @cmd('toolchain', 'Work with toolchains')
@@ -89,10 +119,11 @@ def cmd_tc_add(args):
 def cmd_tc_list(args):
     # type: (t.List[str]) -> int
     tc_list = get_toolchain_manager().list()
-    for tc in tc_list:
-        print('{} {}'.format(' ', tc.name))
-    else:
+    if len(tc_list) == 0:
         print('No toolchains found!')
+    else:
+        for tc in tc_list:
+            print('{} {}'.format(' ', tc.name))
     return 0
 
 

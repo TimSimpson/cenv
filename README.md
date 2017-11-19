@@ -24,12 +24,12 @@ in Windows:
 
 ## Usage
 
-
-    cenv toolchain list
-        * default
     cenv toolchain add emscripten "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
     cenv toolchain add msvc-14.1 --from-template msvc-14.1
-
+    cenv toolchain list
+      emscripten
+    cenv toolchain add msvc-14.1 --from-template msvc-14.1
+    cenv toolchain list
     cenv list
         - shows envs
     cenv create emscripten js
@@ -41,13 +41,37 @@ in Windows:
 Cget-Env requires Python 2 or 3.
 
 
-## Storage
+## Installation
 
-output/
-    toolchains/
-        emscripten.cenv.txt
-        emscripten.cmake...
-        msvc-15.0.cmake...
-    envs/
-        js  # <-- this is a cget directory
+cenv can be installed the same as most Python projects.
+
+TODO: Overview of how to do that.
+
+Once you have `cmake`, `cget`, and `cenv` on the path, add the following to your bash.rc file or wherever you setup your shell:
+
+    export CENV_ROOT="${CENV_ROOT:-$HOME/.cenv}"
+
+    function cenv(){
+        $(which cenv) "$@"
+        if [ "${?}" -eq 0 ]; then
+            source "${CENV_ROOT}"/cenv.rc
+        fi
+    }
+
+    function cmake(){
+        local cmake_path=$(which cmake)
+        if [ "${CGET_PREFIX}" == "" ]; then
+            $(which cmake) "${@}"
+        else
+            $(which cmake) \
+                -DCMAKE_TOOLCHAIN_FILE="${CGET_PREFIX}"/cget/cget.cmake \
+                -DCMAKE_INSTALL_PREFIX="${CGET_PREFIX}" \
+                "${@}"
+        fi
+    }
+
+These two functions wrap `cenv` and `cmake` respectively. `cenv` is wrapped to
+allow a semi-portable Python script to set values in your shell, while `cmake`
+is wrapped so always pass in the paths assocated with the currently selected
+environment.
 

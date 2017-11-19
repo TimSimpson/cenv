@@ -21,7 +21,7 @@ class Env(object):
     @property
     def active(self):
         # type: () -> bool
-        if CGET_PREFIX is None:
+        if CGET_PREFIX is None or not CGET_PREFIX:
             return False
         return self._directory.startswith(CGET_PREFIX)
 
