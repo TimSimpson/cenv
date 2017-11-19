@@ -33,15 +33,21 @@ def get_toolchain_manager():
     return toolchains.Manager(get_options().toolchains)
 
 
-@cmd('list', desc='List Cget envs')
+@cmd('list', desc='List Cget envs (use -v for verbose mode)')
 def cmd_list(args):
     # type: (t.List[str]) -> int
+    verbose_mode = '-v' in args or '--verbose' in args
     envs = get_env_manager().list()
     if len(envs) == 0:
         print("No envs found!")
     else:
         for env in envs:
-            print('{} {}'.format('*' if env.active else ' ', env.name))
+            active = '*' if env.active else ' '
+            if verbose_mode:
+                print('{} {}\t{}'.format(
+                    active, env.name, env.get_creation_info()))
+            else:
+                print('{} {}'.format(active, env.name))
 
     return 0
 
@@ -49,19 +55,51 @@ def cmd_list(args):
 @cmd('create', desc='Create a Cget env')
 def cmd_create(args):
     # type: (t.List[str]) -> int
-    if len(args) != 2:
+    if len(args) < 1:
         print('Usage: `create <toolchain> <new env name>')
         return 1
 
-    toolchain_name = args[0]
-    env_name = args[1]
+    env_name = args[0]
 
-    toolchain = get_toolchain_manager().get(toolchain_name)
-    if toolchain is None:
-        print('No such toolchain: {}'.format(toolchain_name))
+    extra_args = args[1:]
+
+    if '--prefix' in extra_args or '-p' in extra_args:
+        print('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
 
-    env = get_env_manager().create(env_name, toolchain)
+    toolchain_arg = None  # type: t.Optional[t.Dict[str, t.Any]]
+    for i, arg in enumerate(extra_args):
+        if "--toolchain" == arg:
+            if i < len(extra_args) - 1:
+                toolchain_arg = {
+                    'index': i + 1, 'name': extra_args[i + 1], 'embed': True
+                }
+                break
+            else:
+                print('Expected name after `--toolchain`.')
+                return 1
+        elif arg.startswith("--toolchain="):
+            toolchain_arg = {
+                'index': i, 'name': extra_args[i][12:], 'embed': True
+            }
+            break
+
+    if toolchain_arg is not None:
+        toolchain = get_toolchain_manager().get(toolchain_arg['name'])
+        if toolchain is None:
+            if not os.path.exists(toolchain_arg['name']):
+                print('Warning: No such toolchain: {}'.format(
+                    toolchain_arg['name']))
+                print('Env may be inoperable.')
+        else:
+            # Mutate the arg headed to cget
+            if toolchain_arg['embed']:
+                extra_args[toolchain_arg['index']] = '--toolchain={}'.format(
+                    toolchain.file_path)
+            else:
+                extra_args[toolchain_arg['index']] = toolchain.file_path
+
+    env = get_env_manager().create(env_name, extra_args)
 
     print('Created new {}'.format(env))
     return 0
@@ -86,6 +124,8 @@ def cmd_activate(args):
     with open(ops.rc_file, 'w') as f:
         f.write("export CGET_PREFIX={}".format(env.directory))
 
+    return 0
+
 
 @cmd('deactivate', desc='Turn off cenvs (cmake and cget behave normally)')
 def cmd_deactive(args):
@@ -93,6 +133,7 @@ def cmd_deactive(args):
     ops = get_options()
     with open(ops.rc_file, 'w') as f:
         f.write("export CGET_PREFIX=")
+    return 0
 
 
 @cmd('toolchain', 'Work with toolchains')

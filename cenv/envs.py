@@ -25,6 +25,14 @@ class Env(object):
             return False
         return self._directory.startswith(CGET_PREFIX)
 
+    def get_creation_info(self):
+        # type: () -> str
+        try:
+            with open(os.path.join(self._directory, 'cenv-info.txt')) as f:
+                return f.read()
+        except BaseException:
+            return "<info file not found>"
+
     @property
     def name(self):
         # type: () -> str
@@ -55,8 +63,8 @@ class Manager(object):
         self._dir = root_env_dir  # type: ct.FilePath
         self._view = view or views.Silent()
 
-    def create(self, name, toolchain):
-        # type: (str, toolchains.ToolChain) -> Env
+    def create(self, name, cget_args):
+        # type: (str, t.List[str]) -> Env
         prior = self.get(name)
         if prior is not None:
             raise ValueError('{} already exists at {}'.format(
@@ -67,10 +75,12 @@ class Manager(object):
             'cget',
             'init',
             '--prefix', new_env_directory,
-            '--toolchain', toolchain.file_path
-        ]
+        ] + cget_args
         self._view.run_command(' '.join(cmd))
         subprocess.check_call(cmd)
+        with open(os.path.join(new_env_directory, "cenv-info.txt"), "w") as f:
+            f.write(' '.join('"{}"'.format(arg) if ' ' in arg else arg
+                             for arg in cget_args))
         return Env(name, ct.FilePath(new_env_directory))
 
     def delete(self, name):
