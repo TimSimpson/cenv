@@ -12,5 +12,4 @@ echo '* * Installing Cenv...'
 echo '* * CENV installed.'
 
 echo 'To use cenv, you need to run the following file from your shell:'
-echo 'export PATH="'"${root}"'/output/bvenv/bin:${PATH}"
 echo 'source '"${root}"'/resources/bash-support.sh'
