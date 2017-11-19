@@ -1,6 +1,15 @@
 @ECHO OFF
 
-if "%CGET_PREFIX%"=="" ( GOTO normal ) ELSE ( GOTO inject )
+set args=%*
+set args_minus_build=%args:--build=%
+
+if "%CGET_PREFIX%"=="" ( GOTO normal ) ELSE (
+    REM don't inject stuff as it messed up the --build command.
+    IF "%args%"=="%args_minus_build%" (
+        GOTO inject
+    )
+    GOTO normal
+)
 
 :normal
     echo CGET_PREFIX not set
