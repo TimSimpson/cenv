@@ -19,6 +19,13 @@ class Env(object):
         self._directory = directory
 
     @property
+    def active(self):
+        # type: () -> bool
+        if CGET_PREFIX is None:
+            return False
+        return self._directory.startswith(CGET_PREFIX)
+
+    @property
     def name(self):
         # type: () -> str
         return self._name
