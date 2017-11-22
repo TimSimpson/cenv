@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/TimSimpson/cenv.svg?branch=master)](https://travis-ci.org/TimSimpson/cenv)
+
 # Cget-Env - Simple ToolChain / Environment Management
 
 Cget-Env is a tool somewhat similar to PyEnv and lets you manage multiple [Cget](https://github.com/pfultz2/cget) and [CMake](https://cmake.org/) environments.
