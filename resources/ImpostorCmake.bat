@@ -1,10 +1,14 @@
 @ECHO OFF
 
-set args=%*
-set args_minus_build=%args:--build=%
 
+set args=%*
+REM replace " with Q since quotes mess things up
+set args=%args:"=Q%
+REM remove "--build" from the args
+set args_minus_build=%args:--build=%
 if "%CGET_PREFIX%"=="" ( GOTO normal ) ELSE (
-    REM don't inject stuff as it messed up the --build command.
+    REM if --build isn't in the text, don't inject.
+    REM Yes, this is a horrible hack.
     IF "%args%"=="%args_minus_build%" (
         GOTO inject
     )
