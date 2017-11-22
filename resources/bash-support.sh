@@ -23,10 +23,18 @@ function cenv(){
 
 function cmake(){
     local cmake_path=$(which cmake)
-    if [ "${CGET_PREFIX}" == "" ]; then
-        $(which cmake) "${@}"
+    local is_build=
+    for arg in "$@"
+    do
+        if [[ "${arg}" == "--build" ]]; then
+            is_build="yes"
+        fi
+        echo "${arg}"
+    done
+    if [ "${CGET_PREFIX}" == "" ] || [ "${is_build}" != "" ]; then
+        "${cmake_path}" "${@}"
     else
-        $(which cmake) \
+        "${cmake_path}" \
             -DCMAKE_TOOLCHAIN_FILE="${CGET_PREFIX}"/cget/cget.cmake \
             -DCMAKE_INSTALL_PREFIX="${CGET_PREFIX}" \
             "${@}"
