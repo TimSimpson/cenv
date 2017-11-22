@@ -3,7 +3,6 @@ import shutil
 import subprocess
 
 import typing as t  # NOQA
-from . import toolchains  # NOQA
 from . import types as ct  # NOQA
 from . import views
 

@@ -6,15 +6,11 @@ import typing as t  # NOQA
 from . import envs
 from . import frontdoor
 from . import options
-from . import toolchains
 from . import types as ct  # NOQA
 
 
 cenv_registry = frontdoor.CommandRegistry("cenv")  # type: ignore
 cmd = cenv_registry.decorate
-
-tc_registry = frontdoor.CommandRegistry("toolchain")
-tc_cmd = tc_registry.decorate
 
 
 def output(text):
@@ -43,11 +39,6 @@ def get_env_manager():
     return envs.Manager(get_options().environments)
 
 
-def get_toolchain_manager():
-    # type: () -> toolchains.Manager
-    return toolchains.Manager(get_options().toolchains)
-
-
 @cmd('list', desc='List Cget envs (use -v for verbose mode)')
 def cmd_list(args):
     # type: (t.List[str]) -> int
@@ -71,7 +62,7 @@ def cmd_list(args):
 def cmd_create(args):
     # type: (t.List[str]) -> int
     if len(args) < 1:
-        output('Usage: `create <toolchain> <new env name>')
+        output('Usage: `create <new env name> <cget --init args>')
         return 1
 
     env_name = args[0]
@@ -81,38 +72,6 @@ def cmd_create(args):
     if '--prefix' in extra_args or '-p' in extra_args:
         output('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
-
-    toolchain_arg = None  # type: t.Optional[t.Dict[str, t.Any]]
-    for i, arg in enumerate(extra_args):
-        if "--toolchain" == arg:
-            if i < len(extra_args) - 1:
-                toolchain_arg = {
-                    'index': i + 1, 'name': extra_args[i + 1], 'embed': True
-                }
-                break
-            else:
-                output('Expected name after `--toolchain`.')
-                return 1
-        elif arg.startswith("--toolchain="):
-            toolchain_arg = {
-                'index': i, 'name': extra_args[i][12:], 'embed': True
-            }
-            break
-
-    if toolchain_arg is not None:
-        toolchain = get_toolchain_manager().get(toolchain_arg['name'])
-        if toolchain is None:
-            if not os.path.exists(toolchain_arg['name']):
-                output('Warning: No such toolchain: {}'.format(
-                    toolchain_arg['name']))
-                output('Env may be inoperable.')
-        else:
-            # Mutate the arg headed to cget
-            if toolchain_arg['embed']:
-                extra_args[toolchain_arg['index']] = '--toolchain={}'.format(
-                    toolchain.file_path)
-            else:
-                extra_args[toolchain_arg['index']] = toolchain.file_path
 
     env = get_env_manager().create(env_name, extra_args)
 
@@ -152,38 +111,6 @@ def cmd_deactive(args):
         f.write("export CGET_PREFIX=")
     with open(ops.batch_file, 'w') as f:
         f.write("set CGET_PREFIX=")
-    return 0
-
-
-@cmd('toolchain', 'Work with toolchains')
-def cmd_toolchain(args):
-    # type: (t.List[str]) -> int
-    return tc_registry.dispatch(args)
-
-
-@tc_cmd('add', 'Create or import toolchain file')
-def cmd_tc_add(args):
-    # type: (t.List[str]) -> int
-    if len(args) != 2:
-        output('Usage: `add <name of toolchain> <path to toolchain file>')
-        return 1
-
-    name = args[0]
-    file_path = ct.FilePath(args[1])
-    tc = get_toolchain_manager().add_from_file(name, file_path)
-    output("Added new {}".format(tc))
-    return 0
-
-
-@tc_cmd('list', 'List toolchains')
-def cmd_tc_list(args):
-    # type: (t.List[str]) -> int
-    tc_list = get_toolchain_manager().list()
-    if len(tc_list) == 0:
-        output('No toolchains found!')
-    else:
-        for tc in tc_list:
-            output('{} {}'.format(' ', tc.name))
     return 0
 
 

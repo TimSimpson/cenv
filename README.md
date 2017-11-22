@@ -25,10 +25,7 @@ Check this out:
     $ cenv list
     * clang-env
       typical-env
-    $ cenv toolchain add emscripten "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
-    $ cenv toolchain list
-      emscripten
-    $ cenv create js --toolchain emscripten
+    $ cenv create js --toolchain "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
     $ cenv activate js
     $ cenv list
       clang-env
