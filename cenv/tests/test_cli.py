@@ -57,5 +57,5 @@ def test_cli(captured_output, test_options):
     del captured_output[:]
 
     cli.cmd_list([])
-    assert ['  clang-env', '  typical-env'] == captured_output
+    assert ['  clang-env', '  typical-env'] == sorted(captured_output)
     del captured_output[:]

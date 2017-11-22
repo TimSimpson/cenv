@@ -3,7 +3,7 @@
 # Runs the same stuff Tox does, but quicker.
 set -e
 echo '* * Flake 8 * *'
-.tox/pep8/bin/flake8 --import-order-style=google
+.tox/pep8/bin/flake8 --import-order-style=google cenv
 echo '* * MyPy 2.7 Mode * *'
 .tox/mypy/bin/mypy \
     --py2 \
@@ -20,7 +20,7 @@ echo '* * MyPy 3.6 Mode * *'
     --disallow-untyped-defs \
     cenv
 echo '* * Tests 2.7 * *'
-.tox/py27/bin/pytest cenv/tests -v -s -x
+PATH=$PATH:.tox/py27/bin .tox/py27/bin/pytest cenv/tests -v -s -x
 echo '* * Tests 3.6 * *'
-.tox/py36/bin/pytest cenv/tests -v -s -x
+PATH=$PATH:.tox/py36/bin .tox/py36/bin/pytest cenv/tests -v -s -x
 echo '* * OK! :) * *'
