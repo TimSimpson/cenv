@@ -15,8 +15,11 @@ fi
 
 
 function cenv(){
+    if [ -e "${CENV_ROOT}"/cenv.rc ]; then
+        rm -f "${CENV_ROOT}"/cenv.rc
+    fi
     "${cenv_path}" "$@"
-    if [ "${?}" -eq 0 ]; then
+    if [ "${?}" -eq 0 ] && [ -e "${CENV_ROOT}"/cenv.rc ]; then
         source "${CENV_ROOT}"/cenv.rc
     fi
 }
