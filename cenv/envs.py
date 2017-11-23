@@ -22,7 +22,8 @@ class Env(object):
         # type: () -> bool
         if CGET_PREFIX is None or not CGET_PREFIX:
             return False
-        return self._directory.startswith(CGET_PREFIX)
+        return (os.path.abspath(self._directory).lower()
+                == os.path.abspath(CGET_PREFIX).lower())
 
     def get_creation_info(self):
         # type: () -> str
