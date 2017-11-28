@@ -43,6 +43,11 @@ class Env(object):
         # type: () -> ct.FilePath
         return self._directory
 
+    @property
+    def lib(self):
+        # type: () -> str
+        return os.path.join(self._directory, 'lib')
+
     def __eq__(self, other):
         # type: (object) -> bool
         if not isinstance(other, Env):
@@ -92,6 +97,14 @@ class Manager(object):
             # Avoid deleteing an environment we don't seem to own.
             raise RuntimeError("Environment in wrong place.")
         shutil.rmtree(env.directory)
+
+    def find_active_env(self):
+        # type: () -> t.Optional[Env]
+        """Finds an activated env."""
+        for env in self.list():
+            if env.active:
+                return env
+        return None
 
     def get(self, name):
         # type: (str) -> t.Optional[Env]

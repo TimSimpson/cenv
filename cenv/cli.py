@@ -6,6 +6,7 @@ import typing as t  # NOQA
 from . import envs
 from . import frontdoor
 from . import options
+from . import path
 from . import types as ct  # NOQA
 
 
@@ -88,17 +89,39 @@ def cmd_activate(args):
 
     env_name = args[0]
 
-    env = get_env_manager().get(env_name)
+    env_manager = get_env_manager()
 
-    if env is None:
+    old_env = env_manager.find_active_env()
+    new_env = env_manager.get(env_name)
+
+    if new_env is None:
         output("No such environment {}".format(env_name))
         return 1
 
+    old_paths = path.get_paths()
+    new_paths = path.update_paths(
+        old_paths,
+        new_path=new_env.lib,
+        old_path=None if old_env is None else old_env.lib)
+    new_path_str = path.set_paths(new_paths)
+
     ops = get_options()
     with open(ops.rc_file, 'w') as f:
-        f.write("export CGET_PREFIX={}".format(env.directory))
+        f.write("# This file was created by Cenv.\n"
+                "# It's intended to be used only once then deleted.\n"
+                "export CGET_PREFIX={cget_prefix}\n"
+                "export PATH={path}\n".format(
+                        cget_prefix=new_env.directory,
+                        path=new_path_str
+                    ))
     with open(ops.batch_file, 'w') as f:
-        f.write("set CGET_PREFIX={}".format(env.directory))
+        f.write("REM This file was created by Cenv.\n"
+                "REM It's intended to be used only once then deleted.\n"
+                "set CGET_PREFIX={cget_prefix}\n"
+                "set PATH={path}\n".format(
+                        cget_prefix=new_env.directory,
+                        path=new_path_str
+                    ))
 
     return 0
 
