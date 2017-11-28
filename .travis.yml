@@ -1,8 +1,11 @@
 language: python
-python:
-    - "2.7"
-    - "3.6"
-    - "pep8"
-    - "mypy"
-install: pip install tox
-script: tox
+python: 2.7
+env:
+ - TOX_ENV=py27
+ - TOX_ENV=py36
+ - TOX_ENV=pep8
+ - TOX_ENV=mypy
+install:
+ - pip install tox
+script:
+ - tox -e $TOX_ENV
