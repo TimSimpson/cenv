@@ -2,7 +2,7 @@
 
 
 set args=%*
-if [%args%] == [] goto normal
+if [%1] == [] goto normal
 if "%CGET_PREFIX%"=="" goto normal
 
 REM replace " with 'ESCAPE_QUOTE_HACK' since quotes mess things below up
