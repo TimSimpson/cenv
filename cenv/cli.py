@@ -59,8 +59,8 @@ def cmd_list(args):
     return 0
 
 
-@cmd('create', desc='Create a Cget env')
-def cmd_create(args):
+@cmd('init', desc='Create a Cget env')
+def cmd_init(args):
     # type: (t.List[str]) -> int
     if len(args) < 1:
         output('Usage: `create <new env name> <cget --init args>')
@@ -87,54 +87,81 @@ def cmd_activate(args):
         output('Usage: `activate <env name>')
         return 1
 
-    env_name = args[0]
+    return _set_env(args[0])
+
+
+def _set_env(env_name):
+    # type: (t.Optional[str]) -> int
 
     env_manager = get_env_manager()
 
     old_env = env_manager.find_active_env()
-    new_env = env_manager.get(env_name)
 
-    if new_env is None:
-        output("No such environment {}".format(env_name))
-        return 1
+    if env_name is not None:
+        new_env = env_manager.get(env_name)
+        if new_env is None:
+            output("No such environment {}".format(env_name))
+            return 1
+    else:
+        new_env = None
 
-    old_paths = path.get_paths()
-    new_paths = path.update_paths(
-        old_paths,
-        new_path=new_env.lib,
+    new_path_str = path.update_paths(
+        'PATH',
+        new_path=None if new_env is None else new_env.lib,
         old_path=None if old_env is None else old_env.lib)
-    new_path_str = path.set_paths(new_paths)
 
+    new_ld_library_path_str = path.update_paths(
+        'LD_LIBRARY_PATH',
+        new_path=None if new_env is None else new_env.lib,
+        old_path=None if old_env is None else old_env.lib)
+
+    template_args = {
+        'cenv_name': '' if new_env is None else new_env.name,
+        'cget_prefix': '' if new_env is None else new_env.directory,
+        'path': new_path_str,
+        'ld_library_path': new_ld_library_path_str,
+    }
     ops = get_options()
     with open(ops.rc_file, 'w') as f:
         f.write("# This file was created by Cenv.\n"
                 "# It's intended to be used only once then deleted.\n"
+                "export CENV_NAME={cenv_name}\n"
                 "export CGET_PREFIX={cget_prefix}\n"
-                "export PATH={path}\n".format(
-                        cget_prefix=new_env.directory,
-                        path=new_path_str
-                    ))
+                "export PATH={path}\n"
+                "export LD_LIBRARY_PATH={ld_library_path}\n"
+                .format(**template_args))
     with open(ops.batch_file, 'w') as f:
         f.write("REM This file was created by Cenv.\n"
                 "REM It's intended to be used only once then deleted.\n"
+                "set CENV_NAME={cenv_name}\n"
                 "set CGET_PREFIX={cget_prefix}\n"
-                "set PATH={path}\n".format(
-                        cget_prefix=new_env.directory,
-                        path=new_path_str
-                    ))
+                "set PATH={path}\n"
+                "set LD_LIBRARY_PATH={ld_library_path}\n"
+                .format(**template_args))
 
+    if new_env:
+        print('* * using {}'.format(new_env.name))
+    else:
+        print('* * cenv deactivated')
     return 0
+
+
+@cmd('set', desc='Sets current Cget env')
+def cmd_set(args):
+    # type: (t.List[str]) -> int
+    if len(args) == 0:
+        return _set_env(None)
+    elif len(args) == 1:
+        return _set_env(args[0])
+    else:
+        print('Usage: cenv set [cenv-name]')
+        return 1
 
 
 @cmd('deactivate', desc='Turn off cenvs (cmake and cget behave normally)')
 def cmd_deactive(args):
     # type: (t.List[str]) -> int
-    ops = get_options()
-    with open(ops.rc_file, 'w') as f:
-        f.write("export CGET_PREFIX=")
-    with open(ops.batch_file, 'w') as f:
-        f.write("set CGET_PREFIX=")
-    return 0
+    return _set_env(None)
 
 
 def main():

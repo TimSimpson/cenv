@@ -44,7 +44,7 @@ def test_cli(captured_output, test_options):
     assert ['No envs found!'] == captured_output
     del captured_output[:]
 
-    cli.cmd_create(['typical-env'])
+    cli.cmd_init(['typical-env'])
     assert captured_output[0].startswith('Created')
     del captured_output[:]
 
@@ -52,7 +52,7 @@ def test_cli(captured_output, test_options):
     assert ['  typical-env'] == captured_output
     del captured_output[:]
 
-    cli.cmd_create(['clang-env', '--cxx', 'clang++-3.8'])
+    cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
     assert captured_output[0].startswith('Created')
     del captured_output[:]
 
