@@ -3,14 +3,18 @@ bash_support_root=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 export CENV_ROOT="${CENV_ROOT:-$HOME/.cenv}"
 
 cenv_path=$(which cenv)
+cget_path=$(which cget)
+
 if [ "${cenv_path}" == "" ]; then
     # Assume the user used the install script
     cenv_path="${bash_support_root}"/../output/bvenv/bin/cenv
     # To avoid dragging everything from the virtualenv into the path,
     # make cget available this way.
-    function cget(){
-        "${bash_support_root}"/../output/bvenv/bin/cget $@
-    }
+    if [ "${cget_path}" == "" ]; then
+        function cget(){
+            "${bash_support_root}"/../output/bvenv/bin/cget $@
+        }
+    fi
 fi
 
 
