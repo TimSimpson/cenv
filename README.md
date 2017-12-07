@@ -15,11 +15,12 @@ Check this out:
     $ cd some-project
     $ cenv list
     No envs found!
-    $ cenv create typical-env
+    $ cenv init typical-env
     Created new Env(name=typical-env, toolchain=None)
-    $ cenv create clang-env --cxx clang++-3.8 --cc clang-3.8
+    $ cenv init clang-env --cxx clang++-3.8 --cc clang-3.8
     Created new Env(name=clang-env, toolchain=None)
-    $ cenv activate clang-env
+    $ cenv set clang-env
+    * * using clang-env
     $ mkdir build-clang && cd build-clang
     $ cmake -H../ -B./  # build using clang
     $ make install  # install libraries to ~/.cenv/envs/clang-env/lib
@@ -27,8 +28,9 @@ Check this out:
     $ cenv list
     * clang-env
       typical-env
-    $ cenv create js --toolchain "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
-    $ cenv activate js
+    $ cenv init js --toolchain "${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
+    $ cenv set js
+    * * using js
     $ cenv list
       clang-env
     * js
@@ -37,7 +39,8 @@ Check this out:
     $ mkdir build-js && cd build-js
     $ cmake -G Ninja -H../ -B./  $ build using Emscripten
     $ ninja install  # Installs stuff to ~/.cenv/envs/js/lib
-    $ cenv deactivate
+    $ cenv set
+    * * cenv deactivated
 
 ## Installation
 
