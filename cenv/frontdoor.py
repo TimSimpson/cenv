@@ -56,15 +56,25 @@ class CommandRegistry(object):
         self.decorate('help')(lambda args: self.help(args))
 
     def decorate(self, name, desc='', help=None):
-        # type: (str, str, t.Optional[str]) -> t.Callable
+        # type: (t.Union[str, t.List[str]], str, t.Optional[str]) -> t.Callable
         """Decorates a function to make it a command."""
         def cb(func):
             # type: (t.Callable) -> t.Callable
-            self.commands[name] = {
-                'fn': func,
-                'desc': desc,
-                'help': help,
-            }
+            if isinstance(name, str):
+                names = [name]
+                visible_name = name
+            else:
+                names = name
+                visible_name = ','.join(names)
+
+            for index, key in enumerate(names):
+                self.commands[key] = {
+                    'fn': func,
+                    'desc': desc,
+                    'help': help,
+                    'show': index == 0,
+                    'visible_name': visible_name,
+                }
             return func
 
         return cb
@@ -107,7 +117,8 @@ class CommandRegistry(object):
                 if command['help']:
                     print(command['help'])
                 else:
-                    print('(No help defined for "{}".)'.format(name))
+                    print('(No additional help defined for "{}".)'
+                          .format(name))
                 return
             else:
                 print('Unknown command "{}".'.format(name))
@@ -115,11 +126,16 @@ class CommandRegistry(object):
         # Print out all commands
 
         print('Available options for {}:'.format(self.name))
-        max_name = max(len(name) for name in self.commands.keys())
+        max_name = max(len(values['visible_name'])
+                       for values in self.commands.values())
         max_spacing = max(max_name, 16)
 
-        for name, value in sorted(self.commands.items(), key=lambda kv: kv[0]):
-            print("    {}{}{}".format(
-                name, ' ' * (max_spacing - len(name)), value['desc']))
+        for value in sorted(self.commands.values(),
+                            key=lambda v: v['visible_name']):
+            if value['show']:
+                print("    {}{}{}".format(
+                    value['visible_name'],
+                    ' ' * (max_spacing - len(value['visible_name'])),
+                    value['desc']))
 
         return

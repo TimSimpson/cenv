@@ -40,7 +40,7 @@ def get_env_manager():
     return envs.Manager(get_options().environments)
 
 
-@cmd('list', desc='List Cget envs (use -v for verbose mode)')
+@cmd(['l', 'list'], desc='List Cget envs (use -v for verbose mode)')
 def cmd_list(args):
     # type: (t.List[str]) -> int
     verbose_mode = '-v' in args or '--verbose' in args
@@ -48,6 +48,7 @@ def cmd_list(args):
     if len(envs) == 0:
         output("No envs found!")
     else:
+        envs.sort(key=lambda env: env.name)
         for env in envs:
             active = '*' if env.active else ' '
             if verbose_mode:
@@ -146,7 +147,7 @@ def _set_env(env_name):
     return 0
 
 
-@cmd('set', desc='Sets current Cget env')
+@cmd(['s', 'set'], desc='Sets current Cget env')
 def cmd_set(args):
     # type: (t.List[str]) -> int
     if len(args) == 0:
