@@ -122,23 +122,31 @@ def _set_env(env_name):
         'path': new_path_str,
         'ld_library_path': new_ld_library_path_str,
     }
+
+    def write_file(script_type, file_path):
+        # type: (str, str) -> None
+        comment = {
+            'bash': '#',
+            'dos': 'REM',
+        }[script_type]
+        export = {
+            'bash': 'export',
+            'dos': 'set',
+        }[script_type]
+
+        with open(file_path, 'w') as f:
+            f.write(
+                "{comment} This file was created by Cenv.\n"
+                "{comment} It's intended to be used only once then deleted.\n"
+                "{export} CENV_NAME={cenv_name}\n"
+                "{export} CGET_PREFIX={cget_prefix}\n"
+                "{export} PATH={path}\n"
+                "{export} LD_LIBRARY_PATH={ld_library_path}\n"
+                .format(comment=comment, export=export, **template_args))
+
     ops = get_options()
-    with open(ops.rc_file, 'w') as f:
-        f.write("# This file was created by Cenv.\n"
-                "# It's intended to be used only once then deleted.\n"
-                "export CENV_NAME={cenv_name}\n"
-                "export CGET_PREFIX={cget_prefix}\n"
-                "export PATH={path}\n"
-                "export LD_LIBRARY_PATH={ld_library_path}\n"
-                .format(**template_args))
-    with open(ops.batch_file, 'w') as f:
-        f.write("REM This file was created by Cenv.\n"
-                "REM It's intended to be used only once then deleted.\n"
-                "set CENV_NAME={cenv_name}\n"
-                "set CGET_PREFIX={cget_prefix}\n"
-                "set PATH={path}\n"
-                "set LD_LIBRARY_PATH={ld_library_path}\n"
-                .format(**template_args))
+    write_file('bash', ops.rc_file)
+    write_file('dos', ops.batch_file)
 
     if new_env:
         print('* * using {}'.format(new_env.name))
