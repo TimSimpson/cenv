@@ -10,7 +10,7 @@ def test_envs_are_empty(random_directory):
     # type: (ct.FilePath) -> None
     manager = envs.Manager(random_directory)
     assert [] == manager.list()
-    assert None is manager.get('anything')
+    assert None is manager.get(True, 'anything')
 
 
 def test_create_envs(resources_directory, random_directory):
@@ -27,7 +27,7 @@ def test_create_envs(resources_directory, random_directory):
     assert ([envs.Env('js', expected_new_dir)] == manager.list())
 
     # Appears in get:
-    got_env = manager.get('js')
+    got_env = manager.get(True, 'js')
     assert got_env is not None
     assert 'js' == got_env.name
     assert expected_new_dir == got_env.directory
@@ -35,5 +35,5 @@ def test_create_envs(resources_directory, random_directory):
     # Remove environment
     manager.delete('js')
 
-    assert manager.get('js') is None
+    assert manager.get(True, 'js') is None
     assert [] == manager.list()

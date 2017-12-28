@@ -6,3 +6,4 @@ cenv.egg-info
 __pycache__
 *.sublime-workspace
 .tox
+htmlcov

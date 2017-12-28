@@ -1,5 +1,6 @@
 import os
 import sys
+import textwrap
 
 import typing as t  # NOQA
 
@@ -48,7 +49,7 @@ def cmd_list(args):
     if len(envs) == 0:
         output("No envs found!")
     else:
-        envs.sort(key=lambda env: env.name)
+        envs.sort(key=lambda env: env.name if env.managed else '')
         for env in envs:
             active = '*' if env.active else ' '
             if verbose_mode:
@@ -56,6 +57,8 @@ def cmd_list(args):
                     active, env.name, env.get_creation_info()))
             else:
                 output('{} {}'.format(active, env.name))
+            if not env.managed:
+                output('    ^- full path: {}'.format(env.directory))
 
     return 0
 
@@ -81,27 +84,22 @@ def cmd_init(args):
     return 0
 
 
-@cmd('activate', desc='Turn on Cget env')
-def cmd_activate(args):
-    # type: (t.List[str]) -> int
-    if len(args) != 1:
-        output('Usage: `activate <env name>')
-        return 1
-
-    return _set_env(args[0])
-
-
-def _set_env(env_name):
-    # type: (t.Optional[str]) -> int
+def _set_env(managed, env_name):
+    # type: (bool, t.Optional[str]) -> int
 
     env_manager = get_env_manager()
 
     old_env = env_manager.find_active_env()
 
     if env_name is not None:
-        new_env = env_manager.get(env_name)
+        new_env = env_manager.get(managed, env_name)
         if new_env is None:
-            output("No such environment {}".format(env_name))
+            if managed:
+                output("No such environment {}".format(env_name))
+            else:
+                output('"{0}" is not a directory or does not contain a valid '
+                       'toolchain file at "{0}/cget/cget.cmake".'
+                       .format(env_name))
             return 1
     else:
         new_env = None
@@ -149,28 +147,53 @@ def _set_env(env_name):
     write_file('dos', ops.batch_file)
 
     if new_env:
-        print('* * using {}'.format(new_env.name))
+        output('* * using {}'.format(new_env.name))
     else:
-        print('* * cenv deactivated')
+        output('* * cenv deactivated')
     return 0
 
 
-@cmd(['s', 'set'], desc='Sets current Cget env')
+@cmd(['s', 'set'], desc='Sets current Cget env', help=textwrap.dedent("""
+        Usage:
+
+            cenv set <name>
+
+        Finds an environment given by argument <name> and activates it,
+        setting CGET_PREFIX to it's directory and CENV_NAME to <name>. Calls
+        to CMake without the argument `--build` will pass the toolchain
+        located in the environments directory at `./cget/cget.cmake`.
+
+        To activate an environment created by cget directly, pass the
+        argument `--dir` followed by a directory path, like so:
+
+            cenv set --dir <directory-path>
+
+        CENV_NAME will be set to the last component of the directory path
+        (unless it is `cget`) with the prefix "dir:".
+
+     """))
 def cmd_set(args):
     # type: (t.List[str]) -> int
     if len(args) == 0:
-        return _set_env(None)
+        return _set_env(False, None)
     elif len(args) == 1:
-        return _set_env(args[0])
+        return _set_env(True, args[0])
+    elif len(args) == 2 and args[0] == '--dir':
+        if args[0] == '--dir':
+            return _set_env(False, args[1])
+        else:
+            output('Expected an option ("--dir") as argument 1, got {}.'
+                   .format(args[0]))
+            return 1
     else:
-        print('Usage: cenv set [cenv-name]')
+        output('Usage: cenv set [cenv-name]')
         return 1
 
 
 @cmd('deactivate', desc='Turn off cenvs (cmake and cget behave normally)')
 def cmd_deactive(args):
     # type: (t.List[str]) -> int
-    return _set_env(None)
+    return _set_env(False, None)
 
 
 def main():

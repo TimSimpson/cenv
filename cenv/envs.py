@@ -12,10 +12,11 @@ CGET_PREFIX = os.environ.get('CGET_PREFIX', None)
 
 class Env(object):
 
-    def __init__(self, name, directory):
-        # type: (str, ct.FilePath) -> None
+    def __init__(self, name, directory, managed=True):
+        # type: (str, ct.FilePath, bool) -> None
         self._name = name
         self._directory = directory
+        self._managed = managed
 
     @property
     def active(self):
@@ -25,6 +26,11 @@ class Env(object):
         return (os.path.abspath(self._directory).lower()
                 == os.path.abspath(CGET_PREFIX).lower())
 
+    @property
+    def bin(self):
+        # type: () -> str
+        return os.path.join(self._directory, 'bin')
+
     def get_creation_info(self):
         # type: () -> str
         try:
@@ -32,6 +38,11 @@ class Env(object):
                 return f.read()
         except BaseException:
             return "<info file not found>"
+
+    @property
+    def managed(self):
+        # type: () -> bool
+        return self._managed
 
     @property
     def name(self):
@@ -70,7 +81,7 @@ class Manager(object):
 
     def create(self, name, cget_args):
         # type: (str, t.List[str]) -> Env
-        prior = self.get(name)
+        prior = self.get(True, name)
         if prior is not None:
             raise ValueError('{} already exists at {}'.format(
                 prior.name, prior.directory))
@@ -90,13 +101,19 @@ class Manager(object):
 
     def delete(self, name):
         # type: (str) -> None
-        env = self.get(name)
+        env = self.get(True, name)
         if env is None:
             return
-        if not env.directory.startswith(self._dir):
+        if not self._manages_directory(env.directory):
             # Avoid deleteing an environment we don't seem to own.
-            raise RuntimeError("Environment in wrong place.")
+            raise RuntimeError("It doesn't look like cenv manages this "
+                               "environment.")
         shutil.rmtree(env.directory)
+
+    def _manages_directory(self, directory):
+        # type: (str) -> bool
+        ldir = directory.lower()
+        return ldir.startswith(self._dir.lower())
 
     def find_active_env(self):
         # type: () -> t.Optional[Env]
@@ -106,27 +123,37 @@ class Manager(object):
                 return env
         return None
 
-    def get(self, name):
-        # type: (str) -> t.Optional[Env]
-        """Grabs a Env by name."""
-        dir_path = os.path.join(self._dir, name)
+    def get(self, managed, name_or_directory):
+        # type: (bool, str) -> t.Optional[Env]
+        """Grabs a managed Env by name or unmanaged env by directory."""
+        if managed:
+            name = name_or_directory
+            dir_path = os.path.join(self._dir, name_or_directory)
+        else:
+            dir_path = name_or_directory
+            name = os.path.basename(dir_path)
+            if self._manages_directory(dir_path):
+                # some wise acre passed a directory that's actually managed
+                managed = True
+
         if os.path.exists(dir_path) and os.path.isdir(dir_path):
-            return Env(name, ct.FilePath(dir_path))
+            toolchain = os.path.join(dir_path, 'cget/cget.cmake')
+            if os.path.exists(toolchain) and os.path.isfile(toolchain):
+                return Env(name, ct.FilePath(dir_path), managed)
         return None
 
     def list(self):
         # type: () -> t.List[Env]
         result = []  # type: t.List[Env]
+
+        if CGET_PREFIX and not self._manages_directory(CGET_PREFIX):
+            fs_env = Env(os.path.basename(CGET_PREFIX),
+                         ct.FilePath(CGET_PREFIX),
+                         False)
+            result.append(fs_env)
         for file in os.listdir(self._dir):
             dir_path = os.path.join(self._dir, file)
             if os.path.isdir(dir_path):
-                result.append(Env(file, ct.FilePath(dir_path)))
+                result.append(Env(file, ct.FilePath(dir_path), True))
 
         return result
-
-# def create()
-# def switch(env):
-#     # type: (ct.FilePath) -> None
-#     """Switches to a different env."""
-#     # change CGET_PREFIX path to env path
-#     #
