@@ -26,8 +26,9 @@ def test_options(monkeypatch, random_directory):
 class TestCli(object):
 
     @pytest.fixture(autouse=True)
-    def setup(self, test_options):
-        # type: (t.Any, options.Options) -> None
+    def setup(self, random_directory, test_options):
+        # type: (str, options.Options) -> None
+        self.random_directory = random_directory
         self.old_path = os.environ.get('PATH', '')
         self.old_ldlp = os.environ.get('LD_LIBRARY_PATH', '')
         self.ops = test_options
@@ -61,28 +62,28 @@ class TestCli(object):
 
         monkeypatch.setattr(envs, 'CGET_PREFIX', '')
 
-        cli.cmd_list([])
+        assert 0 == cli.cmd_list([])
         assert ['No envs found!'] == captured_output
         del captured_output[:]
 
-        cli.cmd_init(['typical-env'])
+        assert 0 == cli.cmd_init(['typical-env'])
         assert captured_output[0].startswith('Created')
         del captured_output[:]
 
-        cli.cmd_list([])
+        assert 0 == cli.cmd_list([])
         assert ['  typical-env'] == captured_output
         del captured_output[:]
 
-        cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
+        assert 0 == cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
         assert captured_output[0].startswith('Created')
         del captured_output[:]
 
-        cli.cmd_list(['-v'])
+        assert 0 == cli.cmd_list(['-v'])
         assert ['  clang-env\t--cxx clang++-3.8',
                 '  typical-env\t'] == sorted(captured_output)
         del captured_output[:]
 
-        cli.cmd_set(['clang-env'])
+        assert 0 == cli.cmd_set(['clang-env'])
         assert ['* * using clang-env'] == sorted(captured_output)
         del captured_output[:]
         self.assert_script_files(
@@ -97,9 +98,32 @@ class TestCli(object):
                             'CGET_PREFIX',
                             self.ops._from_root('envs/clang-env'))
 
-        cli.cmd_list([])
+        assert 0 == cli.cmd_list([])
         assert ['* clang-env',
                 '  typical-env'] == list(reversed(sorted(captured_output)))
+        del captured_output[:]
+
+        # Now try activating a directory not managed by us. Create it inside
+        # the random directory.
+        nm_dir = os.path.join(self.random_directory, 'nonmanaged-env')
+        os.mkdir(nm_dir)
+        os.mkdir(os.path.join(nm_dir, 'cget'))
+        nmtc_file = os.path.join(nm_dir, 'cget', 'cget.cmake')
+        with open(nmtc_file, 'w') as f:
+            f.write('# Unmanaged toolchain file goes here.')
+
+        assert 0 == cli.cmd_set(['--dir', nm_dir])
+        assert ['* * using nonmanaged-env'] == captured_output
+        del captured_output[:]
+
+        # Again, this would be set by the shell. Here it isn't. Oh well.
+        monkeypatch.setattr(envs, 'CGET_PREFIX', nm_dir)
+
+        assert 0 == cli.cmd_list(['-v'])
+        assert ['* nonmanaged-env\t<info file not found>',
+                '    ^- full path: {}'.format(nm_dir),
+                '  clang-env\t--cxx clang++-3.8',
+                '  typical-env\t', ] == captured_output
         del captured_output[:]
 
     def test_init_no_name(self, captured_output):

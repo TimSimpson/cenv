@@ -69,8 +69,13 @@ class PathUpdater(object):
             if new_path == old_path:
                 return result
             if old_path is not None:
-                old_path_i = paths.index(old_path)
-                del result[old_path_i]
+                try:
+                    old_path_i = paths.index(old_path)
+                    del result[old_path_i]
+                except ValueError:
+                    # This happens if the old_path wasn't found, which occurs
+                    # in some odd cases (such as testing)
+                    pass
             if new_path is None or new_path in paths:
                 return result
             return [new_path] + result
