@@ -28,8 +28,3 @@ class Options(object):
     def rc_file(self):
         # type: () -> ct.FilePath
         return self._from_root("cenv.rc")
-
-    @property
-    def toolchains(self):
-        # type: () -> ct.FilePath
-        return self._from_root("toolchains")

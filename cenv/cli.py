@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import textwrap
@@ -15,15 +17,6 @@ cenv_registry = frontdoor.CommandRegistry("cenv")  # type: ignore
 cmd = cenv_registry.decorate
 
 
-def output(text):
-    # type: (str) -> None
-    """Exactly like print, but easier to monkeypatch.
-
-    I don't like the fixtures that capture stdout.
-    """
-    print(text)
-
-
 def get_options():
     # type: () -> options.Options
     default_root = os.path.join('~', '.cenv')
@@ -31,8 +24,6 @@ def get_options():
     ops = options.Options(ct.FilePath(root))
     if not os.path.exists(ops.environments):
         os.makedirs(ops.environments)
-    if not os.path.exists(ops.toolchains):
-        os.makedirs(ops.toolchains)
     return ops
 
 
@@ -47,18 +38,18 @@ def cmd_list(args):
     verbose_mode = '-v' in args or '--verbose' in args
     envs = get_env_manager().list()
     if len(envs) == 0:
-        output("No envs found!")
+        print("No envs found!")
     else:
         envs.sort(key=lambda env: env.name if env.managed else '')
         for env in envs:
             active = '*' if env.active else ' '
             if verbose_mode:
-                output('{} {}\t{}'.format(
+                print('{} {}\t{}'.format(
                     active, env.name, env.get_creation_info()))
             else:
-                output('{} {}'.format(active, env.name))
+                print('{} {}'.format(active, env.name))
             if not env.managed:
-                output('    ^- full path: {}'.format(env.directory))
+                print('    ^- full path: {}'.format(env.directory))
 
     return 0
 
@@ -67,7 +58,7 @@ def cmd_list(args):
 def cmd_init(args):
     # type: (t.List[str]) -> int
     if len(args) < 1:
-        output('Usage: `create <new env name> <cget --init args>')
+        print('Usage: `create <new env name> <cget --init args>')
         return 1
 
     env_name = args[0]
@@ -75,12 +66,12 @@ def cmd_init(args):
     extra_args = args[1:]
 
     if '--prefix' in extra_args or '-p' in extra_args:
-        output('Invalid value `--prefix`: cenv sets this when calling cget.')
+        print('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
 
     env = get_env_manager().create(env_name, extra_args)
 
-    output('Created new {}'.format(env))
+    print('Created new {}'.format(env))
     return 0
 
 
@@ -95,34 +86,42 @@ def _set_env(managed, env_name):
         new_env = env_manager.get(managed, env_name)
         if new_env is None:
             if managed:
-                output("No such environment {}".format(env_name))
+                print("No such environment {}".format(env_name))
             else:
-                output('"{0}" is not a directory or does not contain a valid '
-                       'toolchain file at "{0}/cget/cget.cmake".'
-                       .format(env_name))
+                print('"{0}" is not a directory or does not contain a valid '
+                      'toolchain file at "{0}/cget/cget.cmake".'
+                      .format(env_name))
             return 1
     else:
         new_env = None
 
-    new_path_str = path.update_paths(
-        'PATH',
-        new_path=None if new_env is None else new_env.lib,
-        old_path=None if old_env is None else old_env.lib)
-
-    new_ld_library_path_str = path.update_paths(
-        'LD_LIBRARY_PATH',
-        new_path=None if new_env is None else new_env.lib,
-        old_path=None if old_env is None else old_env.lib)
-
-    template_args = {
-        'cenv_name': '' if new_env is None else new_env.name,
-        'cget_prefix': '' if new_env is None else new_env.directory,
-        'path': new_path_str,
-        'ld_library_path': new_ld_library_path_str,
-    }
-
     def write_file(script_type, file_path):
         # type: (str, str) -> None
+
+        sep = {
+            'bash': ':',
+            'dos': ';',
+        }[script_type]
+
+        p = path.PathUpdater(sep)
+
+        new_path_str = p.update_paths(
+            'PATH',
+            new_path=None if new_env is None else new_env.lib,
+            old_path=None if old_env is None else old_env.lib)
+
+        new_ld_library_path_str = p.update_paths(
+            'LD_LIBRARY_PATH',
+            new_path=None if new_env is None else new_env.lib,
+            old_path=None if old_env is None else old_env.lib)
+
+        template_args = {
+            'cenv_name': '' if new_env is None else new_env.name,
+            'cget_prefix': '' if new_env is None else new_env.directory,
+            'path': new_path_str,
+            'ld_library_path': new_ld_library_path_str,
+        }
+
         comment = {
             'bash': '#',
             'dos': 'REM',
@@ -147,9 +146,9 @@ def _set_env(managed, env_name):
     write_file('dos', ops.batch_file)
 
     if new_env:
-        output('* * using {}'.format(new_env.name))
+        print('* * using {}'.format(new_env.name))
     else:
-        output('* * cenv deactivated')
+        print('* * cenv deactivated')
     return 0
 
 
@@ -182,11 +181,11 @@ def cmd_set(args):
         if args[0] == '--dir':
             return _set_env(False, args[1])
         else:
-            output('Expected an option ("--dir") as argument 1, got {}.'
-                   .format(args[0]))
+            print('Expected an option ("--dir") as argument 1, got {}.'
+                  .format(args[0]))
             return 1
     else:
-        output('Usage: cenv set [cenv-name]')
+        print('Usage: cenv set [cenv-name]')
         return 1
 
 

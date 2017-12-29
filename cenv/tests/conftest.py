@@ -5,7 +5,31 @@ import uuid
 import pytest
 
 import typing as t  # NOQA
+
 from .. import types as ct  # NOQA
+
+
+@pytest.fixture
+def captured_output(monkeypatch):
+    # type: (t.Any) -> t.List[str]
+    recorded_output = []  # type: t.List[str]
+
+    def fake_output(text):
+        # type: (str) -> None
+        recorded_output.append(text)
+
+    monkeypatch.setitem(__builtins__, "print", fake_output)
+    return recorded_output
+
+
+@pytest.fixture()
+def random_directory(test_directory):
+    # type: (ct.FilePath) -> ct.FilePath
+    """Just a temp directory."""
+    random_dir = os.path.join(test_directory, str(uuid.uuid4()))
+    print("Makin' dir {}!".format(random_dir))
+    os.mkdir(random_dir)
+    return ct.FilePath(random_dir)
 
 
 @pytest.fixture(scope="session")
@@ -46,12 +70,3 @@ def test_directory():
 
     os.mkdir(test_dir)
     return ct.FilePath(test_dir)
-
-
-@pytest.fixture()
-def random_directory(test_directory):
-    # type: (ct.FilePath) -> ct.FilePath
-    """Just a temp directory."""
-    random_dir = os.path.join(test_directory, str(uuid.uuid4()))
-    os.mkdir(random_dir)
-    return ct.FilePath(random_dir)

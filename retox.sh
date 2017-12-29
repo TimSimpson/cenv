@@ -20,7 +20,7 @@ echo '* * MyPy 3.6 Mode * *'
     --disallow-untyped-defs \
     cenv
 echo '* * Tests 2.7 * *'
-PATH=$PATH:.tox/py27/bin .tox/py27/bin/pytest cenv/tests -v -s -x
+PATH=$PATH:.tox/py27/bin .tox/py27/bin/pytest cenv/tests -vv -s -x
 echo '* * Tests 3.6 * *'
-PATH=$PATH:.tox/py36/bin .tox/py36/bin/pytest cenv/tests -v -s -x
+PATH=$PATH:.tox/py36/bin .tox/py36/bin/pytest cenv/tests -vv -s -x
 echo '* * OK! :) * *'

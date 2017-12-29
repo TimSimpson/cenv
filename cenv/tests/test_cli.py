@@ -1,25 +1,13 @@
 import os
 
-import typing as t  # NOQA
-
 import pytest
 
+import typing as t  # NOQA
+
 from .. import cli
+from .. import envs
 from .. import options
 from .. import types as ct  # NOQA
-
-
-@pytest.fixture
-def captured_output(monkeypatch):
-    # type: (t.Any) -> t.List[str]
-    recorded_output = []  # type: t.List[str]
-
-    def fake_output(text):
-        # type: (str) -> None
-        recorded_output.append(text)
-
-    monkeypatch.setattr(cli, "output", fake_output)
-    return recorded_output
 
 
 @pytest.fixture
@@ -35,27 +23,80 @@ def test_options(monkeypatch, random_directory):
     return ops
 
 
-def test_cli(captured_output, test_options):
-    # type: (t.List[str], options.Options) -> None
-    os.mkdir(test_options.environments)
-    os.mkdir(test_options.toolchains)
+class TestCli(object):
 
-    cli.cmd_list([])
-    assert ['No envs found!'] == captured_output
-    del captured_output[:]
+    @pytest.fixture(autouse=True)
+    def setup(self, test_options):
+        # type: (t.Any, options.Options) -> None
+        self.old_path = os.environ.get('PATH', '')
+        self.old_ldlp = os.environ.get('LD_LIBRARY_PATH', '')
+        self.ops = test_options
 
-    cli.cmd_init(['typical-env'])
-    assert captured_output[0].startswith('Created')
-    del captured_output[:]
+    def assert_script_files(self, cenv_name, cget_prefix, path,
+                            ld_library_path):
+        # type: (str, str, str, str) -> None
+        cenv_name_line = 'CENV_NAME={}'.format(cenv_name)
+        cget_line = 'CGET_PREFIX={}'.format(cget_prefix)
 
-    cli.cmd_list([])
-    assert ['  typical-env'] == captured_output
-    del captured_output[:]
+        with open(self.ops.rc_file, 'r') as rc_file:
+            rc = rc_file.read()
+            assert 'export {}'.format(cenv_name_line) in rc
+            assert 'export {}'.format(cget_line) in rc
+            assert 'export PATH={}:{}'.format(path, self.old_path) in rc
+            assert 'export LD_LIBRARY_PATH={}:{}'.format(
+                ld_library_path, self.old_ldlp) in rc
 
-    cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
-    assert captured_output[0].startswith('Created')
-    del captured_output[:]
+        with open(self.ops.batch_file, 'r') as batch_file:
+            batch = batch_file.read()
+            assert 'set {}'.format(cenv_name_line) in batch
+            assert 'set {}'.format(cget_line) in batch
+            assert 'set PATH={};{}'.format(path, self.old_path) in batch
+            assert 'set LD_LIBRARY_PATH={};{}'.format(
+                ld_library_path, self.old_ldlp) in batch
 
-    cli.cmd_list([])
-    assert ['  clang-env', '  typical-env'] == sorted(captured_output)
-    del captured_output[:]
+    def test_cli(self, monkeypatch, captured_output):
+        # type: (t.Any, t.List[str]) -> None
+
+        monkeypatch.setattr(envs, 'CGET_PREFIX', '')
+        os.mkdir(self.ops.environments)
+
+        cli.cmd_list([])
+        assert ['No envs found!'] == captured_output
+        del captured_output[:]
+
+        cli.cmd_init(['typical-env'])
+        assert captured_output[0].startswith('Created')
+        del captured_output[:]
+
+        cli.cmd_list([])
+        assert ['  typical-env'] == captured_output
+        del captured_output[:]
+
+        cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
+        assert captured_output[0].startswith('Created')
+        del captured_output[:]
+
+        cli.cmd_list(['-v'])
+        assert ['  clang-env\t--cxx clang++-3.8',
+                '  typical-env\t'] == sorted(captured_output)
+        del captured_output[:]
+
+        cli.cmd_set(['clang-env'])
+        assert ['* * using clang-env'] == sorted(captured_output)
+        del captured_output[:]
+        self.assert_script_files(
+            cenv_name='clang-env',
+            cget_prefix=self.ops._from_root('envs/clang-env'),
+            path=self.ops._from_root('envs/clang-env/lib'),
+            ld_library_path=self.ops._from_root('envs/clang-env/lib'))
+
+        # Normally, the shell integration would set this when the files -
+        # which we checked for correctness above - are sourced.
+        monkeypatch.setattr(envs,
+                            'CGET_PREFIX',
+                            self.ops._from_root('envs/clang-env'))
+
+        cli.cmd_list([])
+        assert ['* clang-env',
+                '  typical-env'] == list(reversed(sorted(captured_output)))
+        del captured_output[:]
