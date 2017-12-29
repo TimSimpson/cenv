@@ -31,6 +31,8 @@ class TestCli(object):
         self.old_path = os.environ.get('PATH', '')
         self.old_ldlp = os.environ.get('LD_LIBRARY_PATH', '')
         self.ops = test_options
+        if not os.path.exists(self.ops.environments):
+            os.mkdir(self.ops.environments)
 
     def assert_script_files(self, cenv_name, cget_prefix, path,
                             ld_library_path):
@@ -58,7 +60,6 @@ class TestCli(object):
         # type: (t.Any, t.List[str]) -> None
 
         monkeypatch.setattr(envs, 'CGET_PREFIX', '')
-        os.mkdir(self.ops.environments)
 
         cli.cmd_list([])
         assert ['No envs found!'] == captured_output
@@ -100,3 +101,38 @@ class TestCli(object):
         assert ['* clang-env',
                 '  typical-env'] == list(reversed(sorted(captured_output)))
         del captured_output[:]
+
+    def test_init_no_name(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_init([])
+
+        assert 1 == result
+        assert captured_output[0].startswith('Usage: ')
+
+    def test_init_with_prefix(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_init(['cenv-name', '--prefix'])
+
+        assert 1 == result
+        assert captured_output[0].startswith('Invalid value `--prefix`')
+
+    def test_init_with_prefix_2(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_init(['cenv-name', '-p'])
+
+        assert 1 == result
+        assert captured_output[0].startswith('Invalid value `--prefix`')
+
+    def test_set_with_invalid_name(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_set(['some-random-name'])
+
+        assert 1 == result
+        assert captured_output[0].startswith('No such environment')
+
+    def test_set_with_invalid_directory(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_set(['--dir', self.ops._from_root('gfjkghj')])
+
+        assert 1 == result
+        assert 'not a directory or does not contain a' in captured_output[0]
