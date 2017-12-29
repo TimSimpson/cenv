@@ -116,6 +116,12 @@ class TestCli(object):
         assert ['* * using nonmanaged-env'] == captured_output
         del captured_output[:]
 
+        self.assert_script_files(
+            cenv_name='nonmanaged-env',
+            cget_prefix=nm_dir,
+            path=os.path.join(nm_dir, 'lib'),
+            ld_library_path=os.path.join(nm_dir, 'lib'))
+
         # Again, this would be set by the shell. Here it isn't. Oh well.
         monkeypatch.setattr(envs, 'CGET_PREFIX', nm_dir)
 
@@ -124,6 +130,14 @@ class TestCli(object):
                 '    ^- full path: {}'.format(nm_dir),
                 '  clang-env\t--cxx clang++-3.8',
                 '  typical-env\t', ] == captured_output
+        del captured_output[:]
+
+        assert 0 == cli.cmd_set([])
+        assert ['* * cenv deactivated'] == captured_output
+        del captured_output[:]
+
+        assert 0 == cli.cmd_deactive([])
+        assert ['* * cenv deactivated'] == captured_output
         del captured_output[:]
 
     def test_init_no_name(self, captured_output):
@@ -154,9 +168,23 @@ class TestCli(object):
         assert 1 == result
         assert captured_output[0].startswith('No such environment')
 
+    def test_set_with_invalid_option_arg(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_set(['1', '2'])
+
+        assert 1 == result
+        assert 'Expected an option' in captured_output[0]
+
     def test_set_with_invalid_directory(self, captured_output):
         # type: (t.List[str]) -> None
         result = cli.cmd_set(['--dir', self.ops._from_root('gfjkghj')])
 
         assert 1 == result
         assert 'not a directory or does not contain a' in captured_output[0]
+
+    def test_set_with_too_many_args(self, captured_output):
+        # type: (t.List[str]) -> None
+        result = cli.cmd_set(['1', '2', '3'])
+
+        assert 1 == result
+        assert captured_output[0].startswith('Usage')

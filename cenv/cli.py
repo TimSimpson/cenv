@@ -177,7 +177,7 @@ def cmd_set(args):
         return _set_env(False, None)
     elif len(args) == 1:
         return _set_env(True, args[0])
-    elif len(args) == 2 and args[0] == '--dir':
+    elif len(args) == 2:
         if args[0] == '--dir':
             return _set_env(False, args[1])
         else:
