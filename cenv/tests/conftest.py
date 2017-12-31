@@ -6,7 +6,15 @@ import pytest
 
 import typing as t  # NOQA
 
+from .. import envs
 from .. import types as ct  # NOQA
+
+
+@pytest.fixture(autouse=True)
+def wipe_cget_prefix(monkeypatch):
+    # type: (t.Any) -> None
+    """Makes sure the CGET_PREFIX isn't set for any tests."""
+    monkeypatch.setattr(envs, 'CGET_PREFIX', '')
 
 
 @pytest.fixture
