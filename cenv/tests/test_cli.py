@@ -10,6 +10,47 @@ from .. import options
 from .. import types as ct  # NOQA
 
 
+def test_get_options_1(monkeypatch):
+    # type: (t.Any) -> None
+    monkeypatch.delitem(os.environ, 'CENV_ROOT', raising=False)
+    expected_root = os.path.expanduser('~/.cenv')
+    expected_envs_path = os.path.expanduser('~/.cenv/envs')
+
+    def fake_exists(actual_path):
+        # type: (str) -> bool
+        assert expected_envs_path == actual_path
+        return True
+
+    monkeypatch.setattr(os.path, 'exists', fake_exists)
+    result = cli.get_options()
+    assert expected_root == result._root_directory
+
+
+def test_get_options_2(monkeypatch):
+    # type: (t.Any) -> None
+    monkeypatch.setitem(os.environ, 'CENV_ROOT', '~/different-cenv-dir')
+    expected_root = os.path.expanduser('~/different-cenv-dir')
+    expected_envs_path = os.path.expanduser('~/different-cenv-dir/envs')
+
+    def fake_exists(actual_path):
+        # type: (str) -> bool
+        assert expected_envs_path == actual_path
+        return False
+
+    state = {'called': False}
+
+    def fake_makedirs(actual_path):
+        # type: (str) -> None
+        assert expected_envs_path == actual_path
+        state['called'] = True
+
+    monkeypatch.setattr(os.path, 'exists', fake_exists)
+    monkeypatch.setattr(os, 'makedirs', fake_makedirs)
+    result = cli.get_options()
+    assert expected_root == result._root_directory
+    assert 'called' in state
+
+
 @pytest.fixture
 def test_options(monkeypatch, random_directory):
     # type: (t.Any, ct.FilePath) -> options.Options

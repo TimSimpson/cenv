@@ -203,5 +203,5 @@ def main():
     sys.exit(cenv_registry.dispatch(args))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     main()
