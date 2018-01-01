@@ -18,64 +18,77 @@ class PathUpdater(object):
     def __init__(self, path_seperator):
         # type: (str) -> None
         self._path_seperator = path_seperator
+        self._case_sensitive = 'nt' != os.name
 
-    def get_paths(self):
-        # type: () -> t.List[str]
-        """Gets the paths from the PATH env variable."""
-        env_path = os.environ['PATH']
-        paths = env_path.split(self._path_seperator)
-        return paths
+    def _arg_to_list(self, path):
+        # type: (t.Union[str, t.List[str], None]) -> t.List[str]
+        if not path:
+            return []
+        elif isinstance(path, str):
+            return [path]
+        else:
+            return [p for p in path]
 
-    def set_paths(self, paths):
-        # type: (t.List[str]) -> str
-        """Turns a list of paths back into a path string and sets env var."""
-        new_path = self._path_seperator.join(paths)
-        os.environ['PATH'] = new_path
-        return new_path
+    def _normalize_path_value(self, path):
+        # type: (str) -> str
+        """Makes path lower case on Windows, stays the same otherwise."""
+        if self._case_sensitive:
+            return path
+        else:
+            return path.lower()
+
+    def _normalize_path_arg(self, path_arg):
+        # type: (t.Union[str, t.List[str], None]) -> t.List[str]
+        return [self._normalize_path_value(p)
+                for p in self._arg_to_list(path_arg)]
+
+    def _remove_matching_elements(self, new_path, old_path):
+        # type: (t.Union[str, t.List[str], None], t.Union[str, t.List[str], None]) -> t.Tuple[t.List[str], t.List[str]]  # NOQA
+        """Removes elements found in both lists, preserves order."""
+        norm_old_path = self._normalize_path_arg(old_path)
+        new_path_list = self._arg_to_list(new_path)
+        norm_new_path = [self._normalize_path_value(p) for p in new_path_list]
+        for i in range(len(norm_old_path)):
+            while i < len(norm_old_path) and norm_old_path[i] in norm_new_path:
+                while norm_old_path[i] in norm_new_path:
+                    delete_index = norm_new_path.index(norm_old_path[i])
+                    del norm_new_path[delete_index]
+                    del new_path_list[delete_index]
+                del norm_old_path[i]
+        return new_path_list, norm_old_path
 
     def update_paths(self, path_var_name, new_path=None, old_path=None):
-        # type: (str, t.Optional[str], t.Optional[str]) -> str
+        # type: (str, t.Union[str, t.List[str], None], t.Union[str, t.List[str], None]) -> str  # NOQA
         """
         Given the name of an environment variables that stores a list of paths,
         return a value where, optionally one path is added and optionally one
         may be removed. Also updates the environment variable.
         """
+        new_path, old_path = self._remove_matching_elements(
+            new_path,
+            old_path)
+
         original_value = os.environ.get(path_var_name, '')
         original_list = original_value.split(self._path_seperator)
+
         modified_list = self._update_paths(original_list, new_path, old_path)
+
         modified_value = self._path_seperator.join(modified_list)
         return modified_value
 
-    def _update_paths(self, paths, new_path=None, old_path=None):
-        # type: (t.List[str], t.Optional[str], t.Optional[str]) -> t.List[str]
-        """Takes list of paths, adds a path (and optionally removes old one)"""
-        result = list(paths)
-        if 'nt' == os.name:
-            l_new_path = None if new_path is None else new_path.lower()
-            l_old_path = None if old_path is None else old_path.lower()
-            if l_new_path == l_old_path:  # no op
-                return result
-            l_paths = [p.lower() for p in paths]
-            if l_old_path is not None:
-                old_path_i = l_paths.index(l_old_path)
-                del result[old_path_i]
+    def _update_paths(self, original_list, new_path, old_path):
+        # type: (t.List[str], t.List[str], t.List[str]) -> t.List
+        lc_list = [self._normalize_path_value(e) for e in original_list]
 
-            if l_new_path is None or l_new_path in l_paths:
-                return result
+        remove_indices = []  # type: t.List[int]
+        for op in old_path:
+            if op in lc_list:
+                # Remove only once
+                remove_indices.append(lc_list.index(op))
 
-            assert new_path is not None
-            return [new_path] + result
-        else:
-            if new_path == old_path:
-                return result
-            if old_path is not None:
-                try:
-                    old_path_i = paths.index(old_path)
-                    del result[old_path_i]
-                except ValueError:
-                    # This happens if the old_path wasn't found, which occurs
-                    # in some odd cases (such as testing)
-                    pass
-            if new_path is None or new_path in paths:
-                return result
-            return [new_path] + result
+        filtered_list = [original_list[i] for i in range(len(original_list))
+                         if i not in remove_indices]
+
+        modified_list = new_path + filtered_list
+
+        return modified_list
