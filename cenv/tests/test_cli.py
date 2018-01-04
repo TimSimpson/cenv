@@ -86,7 +86,8 @@ class TestCli(object):
             rc = rc_file.read()
             assert 'export {}'.format(cenv_name_line) in rc
             assert 'export {}'.format(cget_line) in rc
-            assert 'export PATH={}:{}'.format(path, self.old_path) in rc
+            assert 'export PATH={}:{}'.format(
+                path.replace('@', ':'), self.old_path) in rc
             assert 'export LD_LIBRARY_PATH={}:{}'.format(
                 ld_library_path, self.old_ldlp) in rc
 
@@ -94,7 +95,8 @@ class TestCli(object):
             batch = batch_file.read()
             assert 'set {}'.format(cenv_name_line) in batch
             assert 'set {}'.format(cget_line) in batch
-            assert 'set PATH={};{}'.format(path, self.old_path) in batch
+            assert 'set PATH={};{}'.format(
+                path.replace('@', ';'), self.old_path) in batch
             assert 'set LD_LIBRARY_PATH={};{}'.format(
                 ld_library_path, self.old_ldlp) in batch
 
@@ -130,7 +132,9 @@ class TestCli(object):
         self.assert_script_files(
             cenv_name='clang-env',
             cget_prefix=self.ops._from_root('envs/clang-env'),
-            path=self.ops._from_root('envs/clang-env/lib'),
+            path='{}@{}'.format(
+                self.ops._from_root('envs/clang-env/bin'),
+                self.ops._from_root('envs/clang-env/lib')),
             ld_library_path=self.ops._from_root('envs/clang-env/lib'))
 
         # Normally, the shell integration would set this when the files -
@@ -160,7 +164,9 @@ class TestCli(object):
         self.assert_script_files(
             cenv_name='nonmanaged-env',
             cget_prefix=nm_dir,
-            path=os.path.join(nm_dir, 'lib'),
+            path='{}@{}'.format(
+                os.path.join(nm_dir, 'bin'),
+                os.path.join(nm_dir, 'lib')),
             ld_library_path=os.path.join(nm_dir, 'lib'))
 
         # Again, this would be set by the shell. Here it isn't. Oh well.

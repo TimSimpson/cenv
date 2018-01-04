@@ -107,8 +107,8 @@ def _set_env(managed, env_name):
 
         new_path_str = p.update_paths(
             'PATH',
-            new_path=None if new_env is None else new_env.lib,
-            old_path=None if old_env is None else old_env.lib)
+            new_path=None if new_env is None else [new_env.bin, new_env.lib],
+            old_path=None if old_env is None else [old_env.bin, old_env.lib])
 
         new_ld_library_path_str = p.update_paths(
             'LD_LIBRARY_PATH',

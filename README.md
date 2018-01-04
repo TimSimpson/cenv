@@ -19,7 +19,8 @@ Check this out:
     * * using clang-env
     {clang-env} $ mkdir build-clang && cd build-clang
     {clang-env} $ cmake -H../ -B./  # build using clang
-    {clang-env} $ make install  # installs libraries to ~/.cenv/envs/clang-env/lib
+    {clang-env} $ make install  # installs binaries to ~/.cenv/envs/clang-env
+    {clang-env} $ my-app  # runs ~/.cenv/envs/clang-env/bin/my-app
     {clang-env} $ cd ..
     {clang-env} $ cenv list
     * clang-env
