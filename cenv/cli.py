@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import argparse
 import os
 import sys
 import textwrap
@@ -9,7 +10,7 @@ import typing as t  # NOQA
 from . import envs
 from . import frontdoor
 from . import options
-from . import path
+from . import scripts
 from . import types as ct  # NOQA
 
 
@@ -57,19 +58,41 @@ def cmd_list(args):
 @cmd('init', desc='Create a Cget env')
 def cmd_init(args):
     # type: (t.List[str]) -> int
+    cget_init_with = '--cget-init'
+
+    parser = argparse.ArgumentParser(description="creates a new cenv")
+    parser.add_argument("name",
+                        type=str,
+                        help="Name of cenv")
+    parser.add_argument(cget_init_with,
+                        nargs="+",
+                        help='args passed to `cget --init`',
+                        default=[],
+                        required=False)
+    parser.add_argument('--conan-profile',
+                        type=str,
+                        help='args passed to `cget --init`',
+                        default=None)
+
     if len(args) < 1:
-        print('Usage: `create <new env name> <cget --init args>')
+        print('Usage: `init <new env name> <cget --init args>')
         return 1
 
-    env_name = args[0]
+    if cget_init_with in args:
+        cget_index = args.index(cget_init_with)
+        cget_args = args[cget_index + 1:]
+        other_args = args[0:cget_index]
+    else:
+        cget_args = []
+        other_args = args
 
-    extra_args = args[1:]
+    p_args = parser.parse_args(other_args)
 
-    if '--prefix' in extra_args or '-p' in extra_args:
+    if '--prefix' in cget_args or '-p' in cget_args:
         print('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
 
-    env = get_env_manager().create(env_name, extra_args)
+    env = get_env_manager().create(p_args.name, cget_args)
 
     print('Created new {}'.format(env))
     return 0
@@ -95,55 +118,9 @@ def _set_env(managed, env_name):
     else:
         new_env = None
 
-    def write_file(script_type, file_path):
-        # type: (str, str) -> None
-
-        sep = {
-            'bash': ':',
-            'dos': ';',
-        }[script_type]
-
-        p = path.PathUpdater(sep)
-
-        new_path_str = p.update_paths(
-            'PATH',
-            new_path=None if new_env is None else [new_env.bin, new_env.lib],
-            old_path=None if old_env is None else [old_env.bin, old_env.lib])
-
-        new_ld_library_path_str = p.update_paths(
-            'LD_LIBRARY_PATH',
-            new_path=None if new_env is None else new_env.lib,
-            old_path=None if old_env is None else old_env.lib)
-
-        template_args = {
-            'cenv_name': '' if new_env is None else new_env.name,
-            'cget_prefix': '' if new_env is None else new_env.directory,
-            'path': new_path_str,
-            'ld_library_path': new_ld_library_path_str,
-        }
-
-        comment = {
-            'bash': '#',
-            'dos': 'REM',
-        }[script_type]
-        export = {
-            'bash': 'export',
-            'dos': 'set',
-        }[script_type]
-
-        with open(file_path, 'w') as f:
-            f.write(
-                "{comment} This file was created by Cenv.\n"
-                "{comment} It's intended to be used only once then deleted.\n"
-                "{export} CENV_NAME={cenv_name}\n"
-                "{export} CGET_PREFIX={cget_prefix}\n"
-                "{export} PATH={path}\n"
-                "{export} LD_LIBRARY_PATH={ld_library_path}\n"
-                .format(comment=comment, export=export, **template_args))
-
     ops = get_options()
-    write_file('bash', ops.rc_file)
-    write_file('dos', ops.batch_file)
+    scripts.write_file(old_env, new_env, 'bash', ops.rc_file)
+    scripts.write_file(old_env, new_env, 'dos', ops.batch_file)
 
     if new_env:
         print('* * using {}'.format(new_env.name))

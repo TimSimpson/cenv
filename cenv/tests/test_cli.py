@@ -117,7 +117,8 @@ class TestCli(object):
         assert ['  typical-env'] == captured_output
         del captured_output[:]
 
-        assert 0 == cli.cmd_init(['clang-env', '--cxx', 'clang++-3.8'])
+        assert 0 == cli.cmd_init([
+            'clang-env', '--cget-init', '--cxx', 'clang++-3.8'])
         assert captured_output[0].startswith('Created')
         del captured_output[:]
 
@@ -196,14 +197,14 @@ class TestCli(object):
 
     def test_init_with_prefix(self, captured_output):
         # type: (t.List[str]) -> None
-        result = cli.cmd_init(['cenv-name', '--prefix'])
+        result = cli.cmd_init(['cenv-name', '--cget-init', '--prefix'])
 
         assert 1 == result
         assert captured_output[0].startswith('Invalid value `--prefix`')
 
     def test_init_with_prefix_2(self, captured_output):
         # type: (t.List[str]) -> None
-        result = cli.cmd_init(['cenv-name', '-p'])
+        result = cli.cmd_init(['cenv-name', '--cget-init', '-p'])
 
         assert 1 == result
         assert captured_output[0].startswith('Invalid value `--prefix`')
