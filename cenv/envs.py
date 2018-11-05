@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess
@@ -18,6 +19,8 @@ class Env(object):
         self._directory = directory
         self._managed = managed
 
+        self.__details = None  # type: t.Optional[dict]
+
     @property
     def active(self):
         # type: () -> bool
@@ -31,12 +34,27 @@ class Env(object):
         # type: () -> str
         return os.path.join(self._directory, 'bin')
 
+    @property
+    def conan_profile(self):
+        # type: () -> t.Optional[str]
+        return self._details.get('conan_profile')
+
+    @property
+    def _details(self):
+        # type: () -> dict
+        if self.__details is None:
+            try:
+                with open(os.path.join(self._directory, 'cenv-info.txt')) as f:
+                    self.__details = json.loads(f.read())
+            except BaseException:
+                self.__details = {}
+        return self.__details
+
     def get_creation_info(self):
         # type: () -> str
-        try:
-            with open(os.path.join(self._directory, 'cenv-info.txt')) as f:
-                return f.read()
-        except BaseException:
+        if 'cget_init_args' in self._details:
+            return ' '.join(self._details.get('cget_init_args', []))
+        else:
             return "<info file not found>"
 
     @property
@@ -79,8 +97,9 @@ class Manager(object):
         self._dir = root_env_dir  # type: ct.FilePath
         self._view = view or views.Silent()
 
-    def create(self, name, cget_args):
-        # type: (str, t.List[str]) -> Env
+    def create(self, name, cget_init_args, conan_profile):
+        # type: (str, t.List[str], t.Optional[str]) -> Env
+
         prior = self.get(True, name)
         if prior is not None:
             raise ValueError('{} already exists at {}'.format(
@@ -91,12 +110,16 @@ class Manager(object):
             'cget',
             'init',
             '--prefix', new_env_directory,
-        ] + cget_args
+        ] + cget_init_args
         self._view.run_command(' '.join(cmd))
         subprocess.check_call(cmd)
         with open(os.path.join(new_env_directory, "cenv-info.txt"), "w") as f:
-            f.write(' '.join('"{}"'.format(arg) if ' ' in arg else arg
-                             for arg in cget_args))
+            f.write(json.dumps(
+                {
+                    "cget_init_args": cget_init_args,
+                    "conan_profile": conan_profile,
+                },
+                indent=4))
         return Env(name, ct.FilePath(new_env_directory))
 
     def delete(self, name):

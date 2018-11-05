@@ -19,7 +19,7 @@ def test_create_envs(resources_directory, random_directory):
 
     expected_new_dir = ct.FilePath(os.path.join(random_directory, 'js'))
 
-    new_env = manager.create('js', [])
+    new_env = manager.create('js', cget_init_args=[], conan_profile=None)
     assert 'js' == new_env.name
     assert expected_new_dir == new_env.directory
 

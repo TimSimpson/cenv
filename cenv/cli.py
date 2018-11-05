@@ -92,7 +92,8 @@ def cmd_init(args):
         print('Invalid value `--prefix`: cenv sets this when calling cget.')
         return 1
 
-    env = get_env_manager().create(p_args.name, cget_args)
+    env = get_env_manager().create(
+        p_args.name, cget_args, p_args.conan_profile)
 
     print('Created new {}'.format(env))
     return 0
