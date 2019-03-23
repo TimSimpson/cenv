@@ -7,9 +7,9 @@ import textwrap
 import typing as t  # NOQA
 
 try:
-    from shlex import quote
-except ImportError:
-    quote = None  # Python 2
+    from shlex import quote  # type: ignore
+except ImportError:  # for Python 2
+    quote = None  # type: ignore
 
 from . import envs
 from . import frontdoor

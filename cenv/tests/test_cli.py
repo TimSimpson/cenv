@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pytest
 
@@ -80,16 +81,28 @@ class TestCli(object):
                             ld_library_path):
         # type: (str, str, str, str) -> None
         cenv_name_line = 'CENV_NAME={}'.format(cenv_name)
+        cenv_name_line2 = "CENV_NAME='{}'".format(cenv_name)
         cget_line = 'CGET_PREFIX={}'.format(cget_prefix)
+        cget_line2 = "CGET_PREFIX='{}'".format(cget_prefix)
 
         with open(self.ops.rc_file, 'r') as rc_file:
             rc = rc_file.read()
-            assert 'export {}'.format(cenv_name_line) in rc
-            assert 'export {}'.format(cget_line) in rc
-            assert 'export PATH={}:{}'.format(
+            assert (
+                'export {}'.format(cenv_name_line) in rc
+                or 'export {}'.format(cenv_name_line2) in rc
+            )
+            assert (
+                'export {}'.format(cget_line) in rc
+                or 'export {}'.format(cget_line2) in rc
+            )
+            assert 'export PATH=\'{}:{}\''.format(
                 path.replace('@', ':'), self.old_path) in rc
-            assert 'export LD_LIBRARY_PATH={}:{}'.format(
-                ld_library_path, self.old_ldlp) in rc
+            if sys.version_info[0] < 3:
+                assert "export LD_LIBRARY_PATH='{}:{}'".format(
+                    ld_library_path, self.old_ldlp) in rc
+            else:
+                assert 'export LD_LIBRARY_PATH={}:{}'.format(
+                    ld_library_path, self.old_ldlp) in rc
 
         with open(self.ops.batch_file, 'r') as batch_file:
             batch = batch_file.read()
