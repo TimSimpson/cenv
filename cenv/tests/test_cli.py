@@ -95,14 +95,20 @@ class TestCli(object):
                 'export {}'.format(cget_line) in rc
                 or 'export {}'.format(cget_line2) in rc
             )
-            assert 'export PATH=\'{}:{}\''.format(
-                path.replace('@', ':'), self.old_path) in rc
-            if sys.version_info[0] < 3:
-                assert "export LD_LIBRARY_PATH='{}:{}'".format(
+            assert (
+                'export PATH=\'{}:{}\''.format(
+                    path.replace('@', ':'), self.old_path) in rc
+                or
+                'export PATH={}:{}'.format(
+                    path.replace('@', ':'), self.old_path) in rc
+            )
+            assert (
+                "export LD_LIBRARY_PATH='{}:{}'".format(
                     ld_library_path, self.old_ldlp) in rc
-            else:
-                assert 'export LD_LIBRARY_PATH={}:{}'.format(
+                or
+                'export LD_LIBRARY_PATH={}:{}'.format(
                     ld_library_path, self.old_ldlp) in rc
+            )
 
         with open(self.ops.batch_file, 'r') as batch_file:
             batch = batch_file.read()
