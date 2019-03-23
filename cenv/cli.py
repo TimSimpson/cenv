@@ -6,6 +6,11 @@ import textwrap
 
 import typing as t  # NOQA
 
+try:
+    from shlex import quote
+except ImportError:
+    quote = None  # Python 2
+
 from . import envs
 from . import frontdoor
 from . import options
@@ -121,6 +126,15 @@ def _set_env(managed, env_name):
             'path': new_path_str,
             'ld_library_path': new_ld_library_path_str,
         }
+
+        # Make sure to wrap this stuff in quotes if we're in bash.
+        if script_type == 'bash':
+            for key in list(template_args.keys()):
+                if quote is None:  # Python 2 crappy version:
+                    template_args[key] = "'{}'".format(
+                        template_args[key].replace("'", "'\"'\"'"))
+                else:
+                    template_args[key] = quote(template_args[key])
 
         comment = {
             'bash': '#',
