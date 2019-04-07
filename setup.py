@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='cenv',
-    version='1.1.0',
+    version='1.1.1',
     description='A manager for CGet environments',
     author='Tim Simpson',
     license='MIT',
