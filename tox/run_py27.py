@@ -18,4 +18,5 @@ def coverage():
     )
 
 
-sys.exit(coverage())
+if __name__=='__main__':
+    sys.exit(coverage())
