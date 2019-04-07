@@ -3,12 +3,8 @@ import pathlib
 import subprocess
 import sys
 
-with open(pathlib.Path(__file__).parent / "py36_path.txt") as f:
-    PYTHON_BIN = f.read()
-
-
 CENV_DIR = pathlib.Path(__file__).parent / ".." / "cenv"
-BIN_DIR = pathlib.Path(PYTHON_BIN).parent
+BIN_DIR = pathlib.Path(sys.executable).parent
 MYPY_OPTIONS = [
     "--strict-optional",
     "--ignore-missing-imports",
