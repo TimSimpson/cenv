@@ -12,3 +12,7 @@ build:
 
 test:
     uv run run_tests.py
+
+
+test-rs:
+    cargo test

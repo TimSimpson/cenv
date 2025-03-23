@@ -20,5 +20,6 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 fn _cenv(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(path::get_path_seperator, m)?)?;
     m.add_class::<options::Options>()?;
+    m.add_class::<path::PathUpdater>()?;
     Ok(())
 }
