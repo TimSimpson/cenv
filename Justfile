@@ -4,6 +4,9 @@
 init:
     uv sync
 
+check:
+    cargo clippy
+
 build:
     uv run maturin develop
 

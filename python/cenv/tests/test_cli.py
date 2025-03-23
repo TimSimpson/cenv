@@ -4,10 +4,10 @@ import pytest
 
 import typing as t  # NOQA
 
-from .. import cli
-from .. import envs
-from .. import options
-from .. import types as ct  # NOQA
+from cenv import cli
+from cenv import envs
+from cenv import options
+from cenv import types as ct  # NOQA
 
 
 def test_get_options_1(monkeypatch):
@@ -23,7 +23,7 @@ def test_get_options_1(monkeypatch):
 
     monkeypatch.setattr(os.path, 'exists', fake_exists)
     result = cli.get_options()
-    assert expected_root == result._root_directory
+    assert expected_root == result.root_directory
 
 
 def test_get_options_2(monkeypatch):
@@ -47,7 +47,7 @@ def test_get_options_2(monkeypatch):
     monkeypatch.setattr(os.path, 'exists', fake_exists)
     monkeypatch.setattr(os, 'makedirs', fake_makedirs)
     result = cli.get_options()
-    assert expected_root == result._root_directory
+    assert expected_root == result.root_directory
     assert 'called' in state
 
 

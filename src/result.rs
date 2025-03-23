@@ -1,0 +1,3 @@
+// use eyre;
+
+pub type Result<T> = std::result::Result<T, eyre::Report>;
