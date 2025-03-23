@@ -49,7 +49,7 @@ def resources_directory():
     which are not modified by the tests.
     """
     this_directory = os.path.dirname(os.path.abspath(__file__))
-    resources_dir = os.path.join(this_directory, '../../resources')
+    resources_dir = os.path.join(this_directory, '../../../resources')
 
     return ct.FilePath(resources_dir)
 
@@ -64,7 +64,7 @@ def test_directory():
     the results of the last test run.
     """
     this_directory = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(this_directory, '../../output')
+    output_dir = os.path.join(this_directory, '../../../output')
 
     # This directory should already exist. It's part of the git repo.
     assert os.path.isdir(output_dir)
