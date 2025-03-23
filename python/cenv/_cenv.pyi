@@ -24,3 +24,6 @@ class Options:
 
     def _from_root(self, path: t.Union[str, ct.FilePath]) -> ct.FilePath:
         ...
+
+def get_path_seperator() -> str:
+    ...

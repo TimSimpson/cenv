@@ -6,14 +6,6 @@ import pytest
 from .. import path
 
 
-def test_get_path_seperator(monkeypatch):
-    # type: (t.Any) -> None
-    monkeypatch.setattr(os, 'name', 'nt')
-    assert ';' == path.get_path_seperator()
-    monkeypatch.setattr(os, 'name', 'unix')
-    assert ':' == path.get_path_seperator()
-
-
 def make_pu(monkeypatch, seperator, case_sensitive):
     # type: (t.Any, str, bool) -> path.PathUpdater
     monkeypatch.setattr(os, 'name', 'linux' if case_sensitive else 'nt')

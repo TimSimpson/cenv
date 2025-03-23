@@ -2,15 +2,8 @@
 import os
 
 import typing as t  # NOQA
+from cenv._cenv import get_path_seperator
 
-
-def get_path_seperator():
-    # type: () -> str
-    """Returns character that seperates directories in the PATH env variable"""
-    if 'nt' == os.name:
-        return ';'
-    else:
-        return ':'
 
 
 class PathUpdater(object):
