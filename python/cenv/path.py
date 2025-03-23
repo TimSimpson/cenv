@@ -6,8 +6,7 @@ from cenv._cenv import get_path_seperator
 from cenv._cenv import PathUpdater as RustPathUpdater
 
 
-def _arg_to_list(self, path):
-    # type: (t.Union[str, t.List[str], None]) -> t.List[str]
+def _arg_to_list(path: t.Union[str, t.List[str], None]) -> t.List[str]:
     if not path:
         return []
     elif isinstance(path, str):
@@ -18,8 +17,7 @@ def _arg_to_list(self, path):
 
 class PathUpdater(object):
 
-    def __init__(self, path_seperator):
-        # type: (str) -> None
+    def __init__(self, path_seperator: str) -> None:
         self.rpu = RustPathUpdater(path_seperator)
         # self._path_seperator = path_seperator
         # self._case_sensitive = 'nt' != os.name
