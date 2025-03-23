@@ -1,13 +1,10 @@
 import abc
 
-import six
-
 import typing as t  # NOQA
 from . import types as ct  # NOQA
 
 
-@six.add_metaclass(abc.ABCMeta)
-class View(object):
+class View(metaclass=abc.ABCMeta):
 
     # @abc.abstractmethod
     # def add_toolchain(self, toolchain):

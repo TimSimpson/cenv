@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 
-CENV_DIR = pathlib.Path(__file__).parent / ".." / "cenv"
+CENV_DIR = pathlib.Path(__file__).parent / "cenv"
 BIN_DIR = pathlib.Path(sys.executable).parent
 MYPY_OPTIONS = [
     "--strict-optional",

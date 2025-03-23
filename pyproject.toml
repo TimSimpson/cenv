@@ -1,0 +1,13 @@
+[project]
+name = "cenv"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "coverage>=7.7.1",
+    "mypy>=1.15.0",
+    "pytest>=8.3.5",
+]
+
