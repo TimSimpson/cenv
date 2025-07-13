@@ -1,12 +1,12 @@
 mod cli;
 mod commands;
-mod config;
 mod envs;
 mod options;
 mod path;
 mod python;
 mod result;
 mod utils;
+mod world;
 
 use result::Result;
 

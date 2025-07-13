@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 use crate::commands;
+use crate::world;
 
 #[derive(clap::Parser)]
 #[command(name="cenv", about = "Works with cget prefix paths")]
@@ -44,17 +45,20 @@ pub fn main() -> crate::Result<()> {
     let opt = Cli::parse();
     match opt.command {
         Command::Init(args) => {
-            commands::init(args.env_name, args.extra_args)            
+            let ctx = world::World::create();
+            commands::init(&ctx, args.env_name, args.extra_args)            
         }
         Command::List(args) => {
-            commands::list(args.verbose)
+            let ctx = world::World::create();
+            commands::list(&ctx, args.verbose)
         }
         Command::Set(args) => {
+            let ctx = world::World::create();
             match args.env_name {
-                Some(env_name) => commands::set(true, Some(env_name)),
+                Some(env_name) => commands::set(&ctx, true, Some(env_name)),
                 None => match args.dir {
-                    Some(dir) => commands::set(false, Some(dir)),
-                    None => commands::set(false, None)
+                    Some(dir) => commands::set(&ctx, false, Some(dir)),
+                    None => commands::set(&ctx, false, None)
                 }
             }
         }
