@@ -1,6 +1,7 @@
 use std::path::PathBuf;
-
 use clap::{Parser, Subcommand};
+
+use crate::commands;
 
 #[derive(clap::Parser)]
 #[command(name="cenv", about = "Works with cget prefix paths")]
@@ -24,18 +25,18 @@ struct ListArgs {
 
 #[derive(clap::Parser)]
 struct InitArgs {
-    #[structopt(short, long, help = "name of new cenv")]
+    #[structopt(help = "name of new cenv")]
     env_name: String,    
-    #[structopt(long, help = "additional arguments to cget")]
     extra_args: Vec<String>,
 }
 
 #[derive(clap::Parser)]
+#[group(required = false, multiple = false)]
 struct SetArgs {
-    #[structopt(short, long, help = "name of new cenv")]
-    env_name: String,    
-    #[structopt(short, long, help = "explicit directory if the prefix path wasn't created by cget")]
-    dir: Option<String>,
+    #[structopt(help = "name of the enviornment")]
+    env_name: Option<String>,    
+    #[structopt(short, long, help = "directory of an enviornment")]
+    dir: Option<String>,    
 }
 
 pub fn main() -> crate::Result<()> {
@@ -43,16 +44,19 @@ pub fn main() -> crate::Result<()> {
     let opt = Cli::parse();
     match opt.command {
         Command::Init(args) => {
-            // TODO
-            Ok(())
+            commands::init(args.env_name, args.extra_args)            
         }
         Command::List(args) => {
-            // TODO
-            Ok(())
+            commands::list(args.verbose)
         }
         Command::Set(args) => {
-            // TODO
-            Ok(())
+            match args.env_name {
+                Some(env_name) => commands::set(true, Some(env_name)),
+                None => match args.dir {
+                    Some(dir) => commands::set(false, Some(dir)),
+                    None => commands::set(false, None)
+                }
+            }
         }
     }
 }

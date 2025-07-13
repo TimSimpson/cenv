@@ -1,4 +1,5 @@
 mod cli;
+mod commands;
 mod config;
 mod envs;
 mod options;
