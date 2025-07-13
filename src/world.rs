@@ -1,20 +1,7 @@
 use std::path;
 
-pub struct World {
-    cfg: Config,
-}
-
-impl World {
-    pub fn create() -> World {
-        let cfg = Config::load_from_env_vars();
-        Self {
-            cfg,
-        }
-    }
-    pub fn cfg(&self) -> &Config {
-        return &self.cfg;
-    }
-}
+use crate::options;
+use crate::Result;
 
 pub struct Config {
     cget_prefix: Option<path::PathBuf>,
@@ -43,4 +30,43 @@ impl Config {
     pub fn set_cget_prefix(&mut self, value: Option<path::PathBuf>) {
         self.cget_prefix= value
     }    
+}
+
+pub struct View {
+}
+
+impl View {
+    pub fn new() -> Self {
+        View{}
+    }
+
+    pub fn run_command(&self, command: String) -> Result<()> {
+        Ok(())
+    }
+}
+
+pub struct World {
+    cfg: Config,
+    ops: options::Options,
+    view: View,
+}
+
+impl World {
+    pub fn create() -> Result<World> {
+        let cfg = Config::load_from_env_vars();
+        let default_root = dirs::home_dir()
+            .ok_or_else(|| eyre::eyre!("Could not find home directory"))?
+            .join(".cenv");
+        let root: path::PathBuf = cfg.cenv_root().unwrap_or(default_root);
+        let ops = options::Options::new(root)?;
+        Ok(Self {
+            cfg,
+            ops,
+            view: View::new(),
+        })
+    }
+    
+    pub fn cfg(&self) -> &Config {
+        return &self.cfg;
+    }
 }

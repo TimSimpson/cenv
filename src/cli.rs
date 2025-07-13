@@ -45,15 +45,15 @@ pub fn main() -> crate::Result<()> {
     let opt = Cli::parse();
     match opt.command {
         Command::Init(args) => {
-            let ctx = world::World::create();
+            let ctx = world::World::create()?;
             commands::init(&ctx, args.env_name, args.extra_args)            
         }
         Command::List(args) => {
-            let ctx = world::World::create();
+            let ctx = world::World::create()?;
             commands::list(&ctx, args.verbose)
         }
         Command::Set(args) => {
-            let ctx = world::World::create();
+            let ctx = world::World::create()?;
             match args.env_name {
                 Some(env_name) => commands::set(&ctx, true, Some(env_name)),
                 None => match args.dir {
