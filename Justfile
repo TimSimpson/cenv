@@ -7,12 +7,12 @@ init:
 check:
     cargo clippy
 
-build:
-    uv run maturin develop
-
 test:
     uv run run_tests.py
 
+
+build-rs:
+    cargo build 
 
 test-rs:
     cargo test
