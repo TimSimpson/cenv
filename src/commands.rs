@@ -33,7 +33,8 @@ pub fn list(w: &world::World, verbose: bool) -> Result<i32> {
     } else {
         envs.sort_by(|a, b| a.name().cmp(b.name()));
         for env in envs {
-            let active = if env.active() { '*' } else { ' ' };
+            w.view().log_debug(&format!("env.directory() = {env}"))?;
+            let active = if env.active(w) { '*' } else { ' ' };
             if verbose {
                 println!("{} {}\t{}", active, env.name(), env.get_creation_info()?);
             } else {
@@ -49,6 +50,17 @@ pub fn list(w: &world::World, verbose: bool) -> Result<i32> {
 
 fn path_buf_to_string(path: &PathBuf) -> String {
     path.to_owned().to_string_lossy().to_string()
+}
+
+fn bash_quote(value: &str) -> String {
+    if value
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || "-_./".contains(c))
+    {
+        value.to_string()
+    } else {
+        format!("'{}'", value.replace('\'', "'\\''"))
+    }
 }
 
 enum ScriptLanguage {
@@ -128,7 +140,7 @@ fn write_file(
 
     let quote = |var: &str| -> Result<String> {
         if let Bash = script_type {
-            Ok(shlex::try_quote(var)?.to_string())
+            Ok(bash_quote(var))
         } else {
             Ok(var.to_string())
         }

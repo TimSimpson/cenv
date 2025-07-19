@@ -46,6 +46,23 @@ impl NullView {
 }
 
 impl View for NullView {
+    fn log_debug(&self, _: &str) -> Result<()> {
+        Ok(())
+    }
+    fn run_command(&self, _: String) -> Result<()> {
+        Ok(())
+    }
+}
+
+pub struct DebugView {}
+
+impl DebugView {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl View for DebugView {
     fn log_debug(&self, msg: &str) -> Result<()> {
         println!("{msg}");
         Ok(())
@@ -63,7 +80,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn create() -> Result<World> {
+    pub fn create(debug: bool) -> Result<World> {
         let cfg = Config::load_from_env_vars();
         let default_root = dirs::home_dir()
             .ok_or_else(|| eyre::eyre!("Could not find home directory"))?
@@ -73,7 +90,11 @@ impl World {
         Ok(Self {
             cfg,
             ops,
-            view: Box::new(NullView::new()),
+            view: if debug {
+                Box::new(DebugView::new())
+            } else {
+                Box::new(NullView::new())
+            },
         })
     }
 

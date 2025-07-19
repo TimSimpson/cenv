@@ -1,3 +1,7 @@
+# source this in Bash to replace "cenv" with a function that wrapper Bash
+# function that will call "cenv" and then set variables in your shell session,
+# and replaces "cmake" with an imposter that will set the tool chain and
+# install prefix files.
 bash_support_root=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 export CENV_ROOT="${CENV_ROOT:-$HOME/.cenv}"
@@ -20,7 +24,7 @@ fi
 
 function cenv(){
     if [ -e "${CENV_ROOT}"/cenv.rc ]; then
-        rm -f "${CENV_ROOT}"/cenv.rc
+        rm "${CENV_ROOT}"/cenv.rc
     fi
     "${cenv_path}" "$@"
     if [ "${?}" -eq 0 ] && [ -e "${CENV_ROOT}"/cenv.rc ]; then

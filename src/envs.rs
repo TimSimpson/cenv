@@ -36,15 +36,8 @@ impl Env {
         }
     }
 
-    fn cget_prefix(&self) -> Option<path::PathBuf> {
-        match self.env_vars.get_var("GET_PREFIX").as_ref() {
-            "" => None,
-            content => Some(path::PathBuf::from(content)),
-        }
-    }
-
-    pub fn active(&self) -> bool {
-        match self.cget_prefix() {
+    pub fn active(&self, world: &World) -> bool {
+        match world.cfg().cget_prefix() {
             None => false,
             Some(cget_prefix) => self.directory == cget_prefix,
         }
@@ -171,7 +164,7 @@ impl<'a> Manager<'a> {
 
     pub fn find_active_env(&self) -> Result<Option<Env>> {
         for env in self.list()? {
-            if env.active() {
+            if env.active(&self.world) {
                 return Ok(Some(env));
             }
         }
@@ -191,7 +184,7 @@ impl<'a> Manager<'a> {
                 Some(v) => v.to_string_lossy().into_owned().to_string(),
                 None => {
                     return Result::Err(eyre::eyre!(
-                        "cannont handle name or directory: {:?}",
+                        "cannot handle name or directory: {:?}",
                         name_or_directory
                     ));
                 }
@@ -200,8 +193,14 @@ impl<'a> Manager<'a> {
             (managed, name, dir_path)
         };
 
+        self.world
+            .view()
+            .log_debug(&format!("if {dir_path:?}.exists() && is_dir-"))?;
         if dir_path.exists() && dir_path.is_dir() {
-            let toolchain = dir_path.join("cget/cget.make");
+            let toolchain = dir_path.join("cget/cget.cmake");
+            self.world
+                .view()
+                .log_debug(&format!("if {toolchain:?}.exists() && is_file-"))?;
             if toolchain.exists() && toolchain.is_file() {
                 return Ok(Some(Env::new(name, dir_path, managed)));
             }
