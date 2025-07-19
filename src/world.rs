@@ -1,7 +1,7 @@
 use std::path;
 
-use crate::options;
 use crate::Result;
+use crate::options;
 
 pub struct Config {
     cget_prefix: Option<path::PathBuf>,
@@ -11,7 +11,7 @@ pub struct Config {
 impl Config {
     pub fn load_from_env_vars() -> Config {
         let cget_prefix = std::env::var("CGET_PREFIX").ok().map(path::PathBuf::from);
-        let cenv_root = std::env::var("CENV_ROOT").ok().map(path::PathBuf::from);        
+        let cenv_root = std::env::var("CENV_ROOT").ok().map(path::PathBuf::from);
         Config {
             cget_prefix,
             cenv_root,
@@ -23,13 +23,13 @@ impl Config {
     }
     pub fn cget_prefix(&self) -> Option<path::PathBuf> {
         self.cget_prefix.clone()
-    }        
+    }
     pub fn set_cenv_root(&mut self, value: Option<path::PathBuf>) {
         self.cenv_root = value
-    }    
+    }
     pub fn set_cget_prefix(&mut self, value: Option<path::PathBuf>) {
-        self.cget_prefix= value
-    }    
+        self.cget_prefix = value
+    }
 }
 
 pub trait View {
@@ -37,14 +37,15 @@ pub trait View {
     fn run_command(&self, _command: String) -> Result<()>;
 }
 
-pub struct NullView {
+pub struct NullView {}
+
+impl NullView {
+    pub fn new() -> Self {
+        Self {}
+    }
 }
 
-impl NullView{
-    pub fn new() -> Self{ Self{}}
-}
-
-impl View for NullView {    
+impl View for NullView {
     fn log_debug(&self, msg: &str) -> Result<()> {
         println!("{msg}");
         Ok(())
@@ -74,7 +75,7 @@ impl World {
             view: Box::new(NullView::new()),
         })
     }
-    
+
     pub fn cfg(&self) -> &Config {
         &self.cfg
     }
@@ -82,7 +83,7 @@ impl World {
     pub fn ops(&self) -> &options::Options {
         &self.ops
     }
-    
+
     pub fn view(&self) -> &dyn View {
         self.view.as_ref()
     }

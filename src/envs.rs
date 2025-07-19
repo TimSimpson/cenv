@@ -1,8 +1,8 @@
+use crate::Result;
 use crate::utils;
 use crate::world::World;
-use crate::Result;
-use std::fs;
 use eyre::eyre;
+use std::fs;
 use std::path;
 
 pub struct Env {
@@ -111,21 +111,30 @@ impl<'a> Manager<'a> {
 
         let prior = self.get(true, &name)?;
         if let Some(prior) = prior {
-            return Err(eyre::eyre!("{} already exists at {:?}", prior.name, prior.directory));
+            return Err(eyre::eyre!(
+                "{} already exists at {:?}",
+                prior.name,
+                prior.directory
+            ));
         }
         let new_env_directory = self.root_dir.join(&name);
         fs::create_dir_all(new_env_directory.clone())?;
         let new_env_directory_str = match new_env_directory.to_str() {
             Some(s) => s.to_string(),
-            None => return Err(eyre::eyre!("error getting path at {:?}", new_env_directory))
+            None => return Err(eyre::eyre!("error getting path at {:?}", new_env_directory)),
         };
-        
+
         let mut cmd = vec![
-            "cget".to_string(), "init".to_string(), "--prefix".to_string(), new_env_directory_str,
+            "cget".to_string(),
+            "init".to_string(),
+            "--prefix".to_string(),
+            new_env_directory_str,
         ];
         cmd.extend(cget_args.clone());
         self.world.view().run_command(cmd.join(" "))?;
-        let status = std::process::Command::new(&cmd[0]).args(cmd.iter().skip(1)).status()?;
+        let status = std::process::Command::new(&cmd[0])
+            .args(cmd.iter().skip(1))
+            .status()?;
         if !status.success() {
             return Err(eyre::eyre!("error calling process: {:?}", cmd));
         }
@@ -151,7 +160,9 @@ impl<'a> Manager<'a> {
         if let Some(env) = self.get(true, name)? {
             if !self.manages_directory(env.directory()) {
                 // Avoid deleteing an environment we don't seem to own.
-                return Err(eyre::eyre!("It doesn't look like cenv manages this environment."));
+                return Err(eyre::eyre!(
+                    "It doesn't look like cenv manages this environment."
+                ));
             }
             fs::remove_dir_all(env.directory())?;
         }
@@ -169,14 +180,23 @@ impl<'a> Manager<'a> {
 
     pub fn get(&self, managed: bool, name_or_directory: &str) -> Result<Option<Env>> {
         let (managed, name, dir_path) = if managed {
-            (managed, name_or_directory.to_string(), self.root_dir.join(name_or_directory))
+            (
+                managed,
+                name_or_directory.to_string(),
+                self.root_dir.join(name_or_directory),
+            )
         } else {
             let dir_path = path::PathBuf::from(name_or_directory);
             let name = match dir_path.file_name() {
                 Some(v) => v.to_string_lossy().into_owned().to_string(),
-                None => return Result::Err(eyre::eyre!("cannont handle name or directory: {:?}", name_or_directory))
+                None => {
+                    return Result::Err(eyre::eyre!(
+                        "cannont handle name or directory: {:?}",
+                        name_or_directory
+                    ));
+                }
             };
-            let managed =self.manages_directory(&dir_path) ;
+            let managed = self.manages_directory(&dir_path);
             (managed, name, dir_path)
         };
 
@@ -196,7 +216,7 @@ impl<'a> Manager<'a> {
             if !self.manages_directory(&cget_prefix) {
                 let name = match cget_prefix.file_name() {
                     Some(file_name) => file_name.to_string_lossy().into_owned().to_string(),
-                    None => return Err(eyre::eyre!("rotten file path: {:?}", cget_prefix))
+                    None => return Err(eyre::eyre!("rotten file path: {:?}", cget_prefix)),
                 };
                 let fs_env = Env::new(name, cget_prefix, false);
                 result.push(fs_env);
@@ -206,8 +226,12 @@ impl<'a> Manager<'a> {
             let file_name = file.file_name();
             let dir_path = self.root_dir.join(file.file_name());
             if dir_path.is_dir() {
-                result.push(Env::new(file_name.to_string_lossy().into_owned().to_string(), dir_path, true));
-            }            
+                result.push(Env::new(
+                    file_name.to_string_lossy().into_owned().to_string(),
+                    dir_path,
+                    true,
+                ));
+            }
         }
         Ok(result)
     }

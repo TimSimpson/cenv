@@ -3,17 +3,13 @@ pub fn get_path_seperator() -> char {
 }
 
 fn _get_path_seperator(not_windows: bool) -> char {
-    if not_windows {
-        ':'
-    } else {
-        ';'
-    }
+    if not_windows { ':' } else { ';' }
 }
 
 pub struct PathUpdater {
     path_seperator: char,
     case_sensitive: bool,
-    get_env_var: fn(&str)->String,
+    get_env_var: fn(&str) -> String,
 }
 
 pub struct UpdatePathArgs<'a> {
@@ -38,7 +34,11 @@ impl PathUpdater {
         }
     }
 
-    pub fn new3(path_seperator: char, case_sensitive: bool, get_env_var: fn(&str)->String) -> Self {
+    pub fn new3(
+        path_seperator: char,
+        case_sensitive: bool,
+        get_env_var: fn(&str) -> String,
+    ) -> Self {
         Self {
             path_seperator,
             case_sensitive,
@@ -156,7 +156,6 @@ mod tests {
         assert_eq!(_get_path_seperator(true), ':');
     }
 
-
     #[test]
     fn test_update_paths_test_empty() {
         let pu = PathUpdater::new2('?', true);
@@ -181,7 +180,11 @@ mod tests {
         // added to their path which were already in the path, and we don't
         // want to purge everything.
         let expected = vec!["abc", "abc"];
-        let actual = pu._update_paths(&vec!["abc", "abc", "abc"], &Vec::new(), &vec!["abc".to_string()]);
+        let actual = pu._update_paths(
+            &vec!["abc", "abc", "abc"],
+            &Vec::new(),
+            &vec!["abc".to_string()],
+        );
         assert_eq!(expected, actual)
     }
 
@@ -189,7 +192,11 @@ mod tests {
     fn test_update_paths_test_remove_when_case_sensitive() {
         let pu = PathUpdater::new2('?', true);
         let expected = vec!["aBC", "Abc"];
-        let actual = pu._update_paths(&vec!["aBC", "Abc", "abc"], &Vec::new(), &vec!["abc".to_string()]);
+        let actual = pu._update_paths(
+            &vec!["aBC", "Abc", "abc"],
+            &Vec::new(),
+            &vec!["abc".to_string()],
+        );
         assert_eq!(expected, actual)
     }
 
@@ -197,7 +204,11 @@ mod tests {
     fn test_update_paths_test_remove_when_case_insensitive() {
         let pu = PathUpdater::new2('?', false);
         let expected = vec!["Abc", "abc"];
-        let actual = pu._update_paths(&vec!["aBC", "Abc", "abc"], &Vec::new(), &vec!["abc".to_string()]);
+        let actual = pu._update_paths(
+            &vec!["aBC", "Abc", "abc"],
+            &Vec::new(),
+            &vec!["abc".to_string()],
+        );
         assert_eq!(expected, actual)
     }
 
@@ -241,7 +252,11 @@ mod tests {
         let pu = PathUpdater::new2('?', false);
         // Ensure that even on case insensitive platforms the exact string
         let expected = vec!["fgh", "123", "abc"];
-        let actual = pu._update_paths(&vec!["abc", "cde"], &vec!["fgh", "123"], &vec!["cde".to_string()]);
+        let actual = pu._update_paths(
+            &vec!["abc", "cde"],
+            &vec!["fgh", "123"],
+            &vec!["cde".to_string()],
+        );
         assert_eq!(expected, actual)
     }
 
