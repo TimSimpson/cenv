@@ -1,5 +1,4 @@
-use std::path::PathBuf;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 use crate::commands;
 use crate::world;
@@ -41,7 +40,6 @@ struct SetArgs {
 }
 
 pub fn main() -> crate::Result<()> {
-    use clap::builder::TypedValueParser;
     let opt = Cli::parse();
     let exit_code = match opt.command {
         Command::Init(args) => {
@@ -63,6 +61,5 @@ pub fn main() -> crate::Result<()> {
             }
         }
     };
-    std::process::exit(exit_code);
-    Ok(())
+    std::process::exit(exit_code);    
 }

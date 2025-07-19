@@ -107,14 +107,13 @@ impl PathUpdater {
 
         let modified_list = self._update_paths(&original_list, &new_path, &old_path);
 
-        let modified_value = modified_list.join(&self.path_seperator.to_string());
-        modified_value
+        modified_list.join(&self.path_seperator.to_string())
     }
 
     pub fn _update_paths<'a>(
         &self,
         original_list: &Vec<&'a str>,
-        new_path: &Vec<&'a str>,
+        new_path: &[&'a str],
         old_path: &Vec<String>,
     ) -> Vec<&'a str> {
         let lc_list = original_list
@@ -136,11 +135,11 @@ impl PathUpdater {
         let filtered_list: Vec<&str> = original_list
             .iter()
             .enumerate()
-            .filter(|(i, _)| !remove_indices.contains(&i))
+            .filter(|(i, _)| !remove_indices.contains(i))
             .map(|(_, p)| *p)
             .collect();
 
-        let mut modified_list = new_path.clone();
+        let mut modified_list = new_path.to_owned();
         modified_list.extend(filtered_list);
 
         modified_list

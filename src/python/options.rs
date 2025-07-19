@@ -18,7 +18,7 @@ impl Options {
     }
 
     pub fn _from_root(&self, path: &str) -> PyResult<String> {
-        Ok(self.inner.from_root(path).to_string_lossy().to_string())
+        Ok(self.inner.get_from_root(path).to_string_lossy().to_string())
     }
 
     #[getter]

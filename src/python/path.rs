@@ -28,7 +28,7 @@ impl PathUpdater {
         old_path: Vec<String>,
     ) -> PyResult<String> {
         Ok(self.inner.update_paths(
-            &path_var_name,
+            path_var_name,
             &new_path.iter().map(|s| s.as_str()).collect(),
             &old_path.iter().map(|s| s.as_str()).collect(),
         ))

@@ -11,20 +11,20 @@ impl Options {
         })
     }
 
-    pub fn from_root(&self, path: &str) -> path::PathBuf {
+    pub fn get_from_root(&self, path: &str) -> path::PathBuf {
         self.root_directory.join(path)
     }
 
     pub fn batch_file(&self) -> path::PathBuf {
-        self.from_root("set-vars.bat")
+        self.get_from_root("set-vars.bat")
     }
 
     pub fn environments(&self) -> path::PathBuf {
-        self.from_root("envs")
+        self.get_from_root("envs")
     }
 
     pub fn rc_file(&self) -> path::PathBuf {
-        self.from_root("cenv.rc")
+        self.get_from_root("cenv.rc")
     }
 
     pub fn root_directory(&self) -> path::PathBuf {

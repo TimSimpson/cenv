@@ -1,9 +1,7 @@
 use crate::utils;
 use crate::world::World;
 use crate::Result;
-use std::sync::Arc;
 use std::fs;
-use std::process;
 use eyre::eyre;
 use std::path;
 
@@ -137,7 +135,7 @@ impl<'a> Manager<'a> {
             .iter()
             .map(|arg| {
                 if arg.contains(' ') {
-                    format!("\"{}\"", arg)
+                    format!("\"{arg}\"")
                 } else {
                     arg.clone()
                 }
@@ -148,6 +146,7 @@ impl<'a> Manager<'a> {
         Ok(Env::new(name, new_env_directory, true))
     }
 
+    // TODO: unused?
     pub fn delete(&self, name: &str) -> Result<()> {
         if let Some(env) = self.get(true, name)? {
             if !self.manages_directory(env.directory()) {
@@ -203,19 +202,17 @@ impl<'a> Manager<'a> {
                 result.push(fs_env);
             }
         }
-        for file in fs::read_dir(&self.root_dir)? {
-            if let Ok(file) = file {
-                let file_name = file.file_name();
-                let dir_path = self.root_dir.join(file.file_name());
-                if dir_path.is_dir() {
-                    result.push(Env::new(file_name.to_string_lossy().into_owned().to_string(), dir_path, true));
-                }
-            }
+        for file in (fs::read_dir(&self.root_dir)?).flatten() {
+            let file_name = file.file_name();
+            let dir_path = self.root_dir.join(file.file_name());
+            if dir_path.is_dir() {
+                result.push(Env::new(file_name.to_string_lossy().into_owned().to_string(), dir_path, true));
+            }            
         }
         Ok(result)
     }
 
-    fn manages_directory(&self, directory: &path::PathBuf) -> bool {
+    fn manages_directory(&self, directory: &path::Path) -> bool {
         directory.starts_with(&self.root_dir)
     }
 }
