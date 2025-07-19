@@ -50,7 +50,8 @@ impl View for NullView {
         println!("{msg}");
         Ok(())
     }
-    fn run_command(&self, _command: String) -> Result<()> {
+    fn run_command(&self, command: String) -> Result<()> {
+        println!("run_command: {command}");
         Ok(())
     }
 }
