@@ -88,7 +88,7 @@ class Manager(object):
         new_env_directory = os.path.join(self._dir, name)
         os.mkdir(new_env_directory)
         cmd = [
-            'cget',
+            'cget', 
             'init',
             '--prefix', new_env_directory,
         ] + cget_args

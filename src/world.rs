@@ -32,15 +32,21 @@ impl Config {
     }    
 }
 
-pub struct View {
+pub trait View {
+    fn run_command(&self, _command: String) -> Result<()> {
+        Ok(())
+    }
 }
 
-impl View {
-    pub fn new() -> Self {
-        View{}
-    }
+pub struct NullView {
+}
 
-    pub fn run_command(&self, command: String) -> Result<()> {
+impl NullView{
+    pub fn new() -> Self{ Self{}}
+}
+
+impl View for NullView {    
+    fn run_command(&self, _command: String) -> Result<()> {
         Ok(())
     }
 }
@@ -48,7 +54,7 @@ impl View {
 pub struct World {
     cfg: Config,
     ops: options::Options,
-    view: View,
+    view: Box<dyn View>,
 }
 
 impl World {
@@ -62,11 +68,15 @@ impl World {
         Ok(Self {
             cfg,
             ops,
-            view: View::new(),
+            view: Box::new(NullView::new()),
         })
     }
     
     pub fn cfg(&self) -> &Config {
         return &self.cfg;
+    }
+
+    pub fn view(&self) -> &Box<dyn View> {
+        return &self.view;
     }
 }
