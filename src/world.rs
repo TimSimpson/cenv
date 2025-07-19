@@ -33,9 +33,8 @@ impl Config {
 }
 
 pub trait View {
-    fn run_command(&self, _command: String) -> Result<()> {
-        Ok(())
-    }
+    fn log_debug(&self, msg: &str) -> Result<()>;
+    fn run_command(&self, _command: String) -> Result<()>;
 }
 
 pub struct NullView {
@@ -46,6 +45,10 @@ impl NullView{
 }
 
 impl View for NullView {    
+    fn log_debug(&self, msg: &str) -> Result<()> {
+        println!("{}", msg);
+        Ok(())
+    }
     fn run_command(&self, _command: String) -> Result<()> {
         Ok(())
     }
@@ -76,6 +79,10 @@ impl World {
         return &self.cfg;
     }
 
+    pub fn ops(&self) -> &options::Options {
+        return &self.ops;
+    }
+    
     pub fn view(&self) -> &Box<dyn View> {
         return &self.view;
     }

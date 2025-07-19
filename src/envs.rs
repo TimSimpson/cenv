@@ -98,13 +98,13 @@ impl std::fmt::Display for Env {
     }
 }
 
-pub struct Manager {
+pub struct Manager<'a> {
     root_dir: path::PathBuf,
-    world: Arc<World>,
+    world: &'a World,
 }
 
-impl Manager {
-    pub fn new(root_dir: path::PathBuf, world: Arc<World>) -> Self {
+impl<'a> Manager<'a> {
+    pub fn new(root_dir: path::PathBuf, world: &'a World) -> Self {
         Self { root_dir, world }
     }
 

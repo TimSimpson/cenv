@@ -43,24 +43,26 @@ struct SetArgs {
 pub fn main() -> crate::Result<()> {
     use clap::builder::TypedValueParser;
     let opt = Cli::parse();
-    match opt.command {
+    let exit_code = match opt.command {
         Command::Init(args) => {
             let ctx = world::World::create()?;
-            commands::init(&ctx, args.env_name, args.extra_args)            
+            commands::init(&ctx, args.env_name, args.extra_args)?
         }
         Command::List(args) => {
             let ctx = world::World::create()?;
-            commands::list(&ctx, args.verbose)
+            commands::list(&ctx, args.verbose)?
         }
         Command::Set(args) => {
             let ctx = world::World::create()?;
             match args.env_name {
-                Some(env_name) => commands::set(&ctx, true, Some(env_name)),
+                Some(env_name) => commands::set(&ctx, true, Some(env_name))?,
                 None => match args.dir {
-                    Some(dir) => commands::set(&ctx, false, Some(dir)),
-                    None => commands::set(&ctx, false, None)
+                    Some(dir) => commands::set(&ctx, false, Some(dir))?,
+                    None => commands::set(&ctx, false, None)?
                 }
             }
         }
-    }
+    };
+    std::process::exit(exit_code);
+    Ok(())
 }
