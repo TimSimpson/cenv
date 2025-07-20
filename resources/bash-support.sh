@@ -10,7 +10,7 @@ function cenv(){
     if [ -e "${CENV_ROOT}"/cenv.rc ]; then
         rm "${CENV_ROOT}"/cenv.rc
     fi
-    if [[ "${1}" == "set2" ]]; then
+    if [[ "${1}" == "set" ]]; then
         shift 1        
         new_cenv_name=$(cenv-rs set2 bash CENV_NAME "${@}")
         # if something goes wrong, print what we got and quit

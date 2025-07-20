@@ -24,6 +24,7 @@ enum Command {
     Init(InitArgs),
     List(ListArgs),
     Set(SetArgs),
+    #[command(hide = true)]
     Set2(Set2Args),
 }
 
