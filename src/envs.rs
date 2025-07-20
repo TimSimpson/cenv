@@ -217,7 +217,7 @@ impl<'a> Manager<'a> {
                     Some(file_name) => file_name.to_string_lossy().into_owned().to_string(),
                     None => return Err(eyre::eyre!("rotten file path: {:?}", cget_prefix)),
                 };
-                let fs_env = Env::new(name, cget_prefix, false);
+                let fs_env: Env = Env::new(name, cget_prefix, false);
                 result.push(fs_env);
             }
         }

@@ -12,7 +12,7 @@ if exist "%CENV_ROOT%\set-vars.bat" (
     del "%CENV_ROOT%\set-vars.bat"
 )
 
-%CENV_BIN_ROOT%\cenv.exe %*
+%CENV_BIN_ROOT%\cenv-rs.exe %*
 if errorlevel 1 (
     exit /b %errorlevel%
 ) else (

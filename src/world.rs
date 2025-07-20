@@ -10,8 +10,8 @@ pub struct Config {
 
 impl Config {
     pub fn load_from_env_vars() -> Config {
-        let cget_prefix = std::env::var("CGET_PREFIX").ok().map(path::PathBuf::from);
-        let cenv_root = std::env::var("CENV_ROOT").ok().map(path::PathBuf::from);
+        let cget_prefix = std::env::var("CGET_PREFIX").ok().map(path::PathBuf::from).filter(|v| v.file_name().is_some());
+        let cenv_root = std::env::var("CENV_ROOT").ok().map(path::PathBuf::from).filter(|v| v.file_name().is_some());        
         Config {
             cget_prefix,
             cenv_root,

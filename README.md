@@ -2,7 +2,20 @@
 
 # Cenv - Simple C Environment Management
 
-Cenv is a tool somewhat similar to PyEnv and lets you manage multiple "c-environments" (or "cenvs" for short), which is a name I made up for the awesome directories [Cget](https://github.com/pfultz2/cget) creates (complete with [CMake](https://cmake.org/) tool chain files) that can be used as "prefix paths" in CMake, make, and other C++ build tools. This allows for some degree of isolation between different builds and allows for workflows similar to Virtualenvs in Python.
+Cenv is a tool somewhat similar to PyEnv and lets you manage multiple "c-environments" (or "cenvs" for short). It works by managing a collection of "c envs" (also known as "prefix paths", or "installation paths") and making it easy to work with them by swapping around environment variables for you. 
+
+In particular, it does the following:
+
+* Automatically updates `PATH` and `LD_LIBRARY_PATH` to include the `bin` and `lib` directories in a given cenv, and unsets them when you're done.
+* Works with the awesome [Cget](https://github.com/pfultz2/cget) by setting the `CGET_PREFIX` var so `cget install` installs dependencies to the right spot.
+* Provides a shell specific wrapper for [CMake](https://cmake.org/) so that `-DCMAKE_TOOLCHAIN_FILE` is automatically passed the `cget` toolchain, and `-DCMAKE_INSTALL_PREFIX` gets the cenv path (CMake has _finally_ added the ability to read defaults for these settings from environment variables but as of 2025 the latest LTS of Ubuntu still gives me the version that won't work and instead dirties the system by default, so I'm keeping this in for now)
+
+# TODO
+
+[ ] Set DCMAKE_INSTALL_PREFIX when switching environments
+[ ] Set DCMAKE_TOOLCHAIN_FILE if the toolchain file is there
+[ ] Allow creating a new cenv without using cget since we live in the worst timeline
+[ ] Potentially explain race condition?
 
 ## Usage
 

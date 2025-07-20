@@ -63,7 +63,7 @@ fn bash_quote(value: &str) -> String {
     }
 }
 
-enum ScriptLanguage {
+pub enum ScriptLanguage {
     Bash,
     Dos,
 }
@@ -210,5 +210,100 @@ pub fn set(w: &world::World, managed: bool, env_name: Option<String>) -> Result<
         None => println!("* * cenv deactivated"),
     }
 
+    Ok(0)
+}
+
+pub enum EnvVar {
+    CenvName,
+    CgetPrefix,
+    LbLibraryPath,
+    Path,    
+}
+
+pub fn set_2(w: &world::World, language: ScriptLanguage, var: EnvVar, managed: bool, env_name: Option<String>) -> Result<i32> {
+    w.view().log_debug("set_env - TODO")?;
+    w.view().log_debug(&format!("managed={managed:?}"))?;
+    w.view().log_debug(&format!("env_name={env_name:?}"))?;
+
+    let env_manager = get_env_manager(w);
+
+    let old_env = env_manager.find_active_env()?;
+
+    let new_env = match env_name {
+        Some(env_name) => match env_manager.get(managed, &env_name)? {
+            Some(env) => Some(env),
+            None => {
+                if managed {
+                    println!("No such environment {env_name}");
+                } else {
+                    println!(
+                        "\"{env_name}\" is not a directory or does not contain a valid toolchain file at \"{env_name}/cget/cget.cmake\"."
+                    );
+                }
+                return Ok(1);
+            }
+        },
+        None => None,
+    };
+
+    let new_value: String = match var {
+        EnvVar::CenvName => { match new_env { None => "".to_string(), Some(e) => e.name().to_string() }},
+        EnvVar::CgetPrefix => { match new_env { None => "".to_string(), Some(e) => path_buf_to_string(e.directory()) }},
+        EnvVar::LbLibraryPath => { 
+            let path_sep = match language {
+                ScriptLanguage::Bash => ':',
+                ScriptLanguage::Dos => ';',
+            };
+            let p = path::PathUpdater::new(path_sep);
+            let new_path_arg = match new_env {
+                None => Vec::new(),
+                Some(env) => vec![path_buf_to_string(&env.lib())],
+            };
+            let new_path_arg_2 = new_path_arg
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>();
+            let old_path_arg = match old_env {
+                None => Vec::new(),
+                Some(env) => vec![path_buf_to_string(&env.lib())],
+            };
+            let old_path_arg_2 = old_path_arg
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>();
+            p.update_paths("LD_LIBRARY_PATH", &new_path_arg_2, &old_path_arg_2)
+        } ,
+        EnvVar::Path => {
+            let path_sep = match language {
+                ScriptLanguage::Bash => ':',
+                ScriptLanguage::Dos => ';',
+            };
+            let p = path::PathUpdater::new(path_sep);
+            let new_path_arg = match new_env {
+                None => Vec::new(),
+                Some(env) => vec![
+                    path_buf_to_string(&env.bin()),
+                    path_buf_to_string(&env.lib()),
+                ],
+            };
+            let new_path_arg_2 = new_path_arg
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>();
+            let old_path_arg = match old_env {
+                None => Vec::new(),
+                Some(env) => vec![
+                    path_buf_to_string(&env.bin()),
+                    path_buf_to_string(&env.lib()),
+                ],
+            };
+            let old_path_arg_2 = old_path_arg
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>();
+            p.update_paths("PATH", &new_path_arg_2, &old_path_arg_2)
+        },
+    };
+    println!("{new_value}");
     Ok(0)
 }
